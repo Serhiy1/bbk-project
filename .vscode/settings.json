@@ -1,0 +1,9 @@
+{
+    "asciidoc.antora.enableAntoraSupport": false,
+    "grammarly.selectors": [
+        {
+            "language": "asciidoc",
+            "scheme": "file"
+        }
+    ]
+}
