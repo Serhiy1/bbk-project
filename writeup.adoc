@@ -87,10 +87,49 @@ NFR5: Security.
 
 === 4.3 Use cases and designs
 
+==== Authentication
 1. Diagram for signing up 
-* This will be first a password + email token exchange.  
-2. Diagram for making an application registration 
-3. Diagram for setting up Project
-4. Diagram for inviting collaborators
-5. Diagram for logging events on a project - and collaborators also receiving same event   
+// This will be first a password + email token exchange.  
+// Follow up implementation with the UI will probably change this 
+* User POSTS JSON to the SignUp endpoint with, email, username and password
+** Email And username need to be unique, password complexity to be met
+* If requirements are met, a new tenancy is created and a token for it is returned  
+
+2. Diagram for logging in 
+* User POSTS JSON with the email and password. 
+* If a user record is found with the matching email and password a token is returned 
+
+==== Applications
+1. Making an application registration
+* authenticated User GETS from the Registration endpoint 
+* An App registration ID + secret is returned 
+
+2. User authenticates an application registration
+* User runs the login process with, but provides the application ID and Secret
+
+3. User Rolls the secret for an application
+* authenticated User GETS from the Registration endpoint with the application ID in the URI  
+
+4. User Deletes A registration
+* authenticated User DELETES from the Registration endpoint with the application ID in the URI  
+
+=== Projects
+1. Creating a project 
+
+2. Adding Events to a Project 
+// Start first with document storage, talk about future improvement using time series 
+// storage
+
+3. Attaching Items to an event
+// https://cloud.google.com/storage/?hl=en
+
+=== Collaborators 
+1. Linking to collaborators
+
+2. Adding collaborators to a project 
+
+3. Removing collaborators from a project  
+// Need to keep in mind the "once shared always shared principal"
+
+
 
