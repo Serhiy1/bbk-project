@@ -114,22 +114,66 @@ NFR5: Security.
 * authenticated User DELETES from the Registration endpoint with the application ID in the URI  
 
 === Projects
+// Start first with document storage, talk about future improvement using time series storage
 1. Creating a project 
+* POST to the project endpoint with initial details in JSON format
+* Project JSON along with an ID 
+// TODO Select what is the required Data
 
-2. Adding Events to a Project 
-// Start first with document storage, talk about future improvement using time series 
-// storage
+2. Updating a project
+* PATCH to the project ID with JSON, Key value pairs are overwritten
+* Update is logged as an event with a Diff as the events content 
+// version changes need to be logged
 
-3. Attaching Items to an event
+3. Viewing a Project 
+* GET to a project ID
+* Returns current project details + A list of Diffs 
+
+4. Viewing All projects
+* GET on the project endpoint
+* Returns a list of project ID with their details 
+
+5. Adding Events to a Project 
+* POST JSON to the project id with event suffix
+* Returns the JSON with the event ID
+
+6. Viewing all Events on a project   
+* POST JSON to the project id with event suffix
+* Returns A list of all the events on the project
+ 
+7. Attaching Rich Items to an event
 // https://cloud.google.com/storage/?hl=en
+* POST the data the rich evidence endpoint
+// See if metadata can be added
+* Returns an id for the evidence
+* POST an event to a project with said ID  
 
 === Collaborators 
 1. Linking to collaborators
+* POST collaborator tenant ID to collaborators endpoint
+// Add some user friendly data, as well as ways to update that data 
+* PENDING status is returned
+* collaborator POSTS your tenant ID back to the collaborators endpoint
+* PENDING status is updated to ACTIVE 
 
-2. Adding collaborators to a project 
+2. Viewing all available collaborators       
+* GET on the collaborators endpoint
+* list is returned containing collaborator ID and their status
+// list what projects they are on 
+// user friendly info   
 
-3. Removing collaborators from a project  
+3. Adding collaborators to a project 
+* POST to the project ID with collaborators suffix JSON containing the ID that you want to add 
+* Returns 200 depending on collaborator is ACTIVE 
+
+4. Removing collaborators from a project  
 // Need to keep in mind the "once shared always shared principal"
+* DELETE to the project ID with collaborators suffix JSON containing the ID that you want to add
 
-
+5. Removing collaborators Completely  
+// Need to keep in mind the "once shared always shared principal"
+// Cannot be done until collaborator is removed from all projects 
+* DELETE to collaborator tenant ID to collaborators endpoint
+* collaborator ID is removed from list 
+* Status on Collaborator side is set to PENDING 
 
