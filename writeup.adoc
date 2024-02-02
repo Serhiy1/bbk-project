@@ -99,6 +99,26 @@ NFR5: Security.
 * User POSTS JSON with the email and password. 
 * If a user record is found with the matching email and password a token is returned 
 
+===== API Paths 
+Sign in Paths
+* POST ${host}/signup {"email" : str, "password" : str, "username"}
+** No authentication needed
+** Returns 200 {"token" : str, "tennant ID" : str}
+** Returns 4xx if email is in use (don't know the correct status code)
+** Returns 4xx if password complexity is not met (don't know the correct status code)
+
+* POST ${host}/Login
+** No authentication needed
+** POST {"email" : "str", "password" : str}
+** Returns 200 {"token" : str}
+** Returns 4xx if email does not exist (don't know the correct status code)
+** Returns 4xx if password does not match (don't know the correct status code)
+
+* GET ${host}/whoami
+** Jwt Header needed
+** GET ${host}/whoami
+** returns {"email" : str, "tenant ID" : str}
+
 ==== Applications
 1. Making an application registration
 * authenticated User GETS from the Registration endpoint 
@@ -113,6 +133,17 @@ NFR5: Security.
 4. User Deletes A registration
 * authenticated User DELETES from the Registration endpoint with the application ID in the URI  
 
+===== API Paths 
+All Paths require a Jwt Authentication, otherwise 403 is returned
+* GET ${host}/App
+** Returns 201 {"appID": str, "secret" : str}
+
+* GET ${host}/App/${appID}/newSecret
+** Returns 200 {"appID": str, "secret" : str}
+
+* DELETE ${host}/App/${appID}
+** Returns 200 (don't know the correct status code)
+
 === Projects
 // Start first with document storage, talk about future improvement using time series storage
 1. Creating a project 
@@ -125,28 +156,52 @@ NFR5: Security.
 * Update is logged as an event with a Diff as the events content 
 // version changes need to be logged
 
-3. Viewing a Project 
+3. Viewing the A Project history 
 * GET to a project ID
-* Returns current project details + A list of Diffs 
+* Returns current project details + A list of Diffs from PATCH request and a list or events  
 
 4. Viewing All projects
 * GET on the project endpoint
 * Returns a list of project ID with their details 
 
-5. Adding Events to a Project 
+==== API Paths
+All Paths require a Jwt Authentication, otherwise 403 is returned
+Any Validation errors are 400 responses
+* Creating a project 
+** POST ${host}/Projects     {"project name" : str, "Custom Meta data" : {str : str}}
+** Returns 201 {"project name": str, "Project ID" : uuid, "Started Date" : Date, "Custom Meta data" : {str : str}} (This is a project type)
+
+* Updating a project
+** PATCH ${host}/Projects/${projectID}     {"project name" : str, "Custom Meta data" : {str : str}}      (This is a diff type)
+** return 200 (not sure) {"project name": str, "Project ID" : uuid, "Started Date" : Date, "Custom Meta data" : {str : str}} 
+
+* Project Overview 
+** GET ${host}/Projects/${projectID}
+** Return 200 {"project name": str, "Project ID" : uuid, "Started Date" : Date, "Custom Meta data" : {str : str}, [Diffs], [Events]}
+
+* View all projects
+** GET ${host}/Projects
+** Return 200 {[project]}
+
+=== Events
+
+1. Adding Events to a Project 
 * POST JSON to the project id with event suffix
 * Returns the JSON with the event ID
 
-6. Viewing all Events on a project   
+2. Viewing all Events on a project   
 * POST JSON to the project id with event suffix
 * Returns A list of all the events on the project
  
-7. Attaching Rich Items to an event
+3. Attaching Rich Items to an event
 // https://cloud.google.com/storage/?hl=en
 * POST the data the rich evidence endpoint
 // See if metadata can be added
 * Returns an id for the evidence
 * POST an event to a project with said ID  
+
+
+
 
 === Collaborators 
 1. Linking to collaborators

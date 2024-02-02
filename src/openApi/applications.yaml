@@ -1,0 +1,80 @@
+openapi: 3.0.0
+info:
+  title: Application Management API
+  version: 1.0.0
+paths:
+  /App:
+    get:
+      summary: Make an application registration
+      security:
+        - jwtAuth: []
+      responses:
+        '201':
+          description: Application registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  appID:
+                    type: string
+                    format: uuid
+                  secret:
+                    type: string
+        '403':
+          description: Forbidden, JWT authentication required
+
+  /App/{appID}/newSecret:
+    get:
+      summary: Roll the secret for an application
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: appID
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the application to roll the secret for
+      responses:
+        '200':
+          description: New secret generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  appID:
+                    type: string
+                    format: uuid
+                  secret:
+                    type: string
+        '403':
+          description: Forbidden, JWT authentication required
+
+  /App/{appID}:
+    delete:
+      summary: Delete a registration
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: appID
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the application to delete
+      responses:
+        '204':
+          description: Application deleted successfully
+        '403':
+          description: Forbidden, JWT authentication required
+
+components:
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
