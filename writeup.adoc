@@ -263,7 +263,9 @@ event type : (1-64 chars (control chars disallowed))
 
 3. Adding collaborators to a project 
 * POST to the project ID with collaborators suffix JSON containing the ID that you want to add 
-* Returns 200 depending on collaborator is ACTIVE 
+* Returns 200 if collaborator is ACTIVE 
+* Returns 400 if collaborator is PENDING
+* returns 404 if collaborator uuid is not found
 
 4. Removing collaborators from a project  
 // Need to keep in mind the "once shared always shared principal"
@@ -276,5 +278,41 @@ event type : (1-64 chars (control chars disallowed))
 * collaborator ID is removed from list 
 * Status on Collaborator side is set to PENDING 
 
-==== 
+==== collaborators API
 
+* All Paths require a Jwt Authentication, otherwise 403 is returned  
+* Any collaborators ID's that are not found return 404 responses
+
+schemas/userSubmit/collaborators.yaml = {"friendly name": str (1-64 chars (control chars disallowed)), tenantID: uuid}
+schemas/AppReturn/collaborators.yaml = {"friendly name": str , tenantID: uuid, status: "PENDING|ACTIVE"}
+
+* Adding collaborator
+** POST ${host}/collaborators   userSubmit/collaborators.yaml
+** returns 201 AppReturn/collaborators.yaml
+
+* Viewing a single collaborator 
+** GET ${host}/collaborators/${collaborator tenant id}   
+** returns 200 AppReturn/collaborators.yaml
+
+* Viewing all collaborators 
+** GET ${host}/collaborators   
+** returns 200 [AppReturn/collaborators.yaml]
+
+* Removing a collaborator 
+** DELETE ${host}/collaborators/${collaborator tenant id}
+** returns 200 
+** returns 400 if collaborator is still present on any projects 
+
+==== Project Collaborators API 
+* All Paths require a Jwt Authentication, otherwise 403 is returned  
+* Any collaborators ID's or Project ID's that are not found return 404 responses
+
+* Adding a Collaborator to a project
+* POST ${host}/projects/${projectID}/Collaborators  {"collaborator" : "collaborator Tenant ID"}
+
+* Viewing Current collaborators on a project
+** GET ${host}/projects/${projectID}/Collaborators
+** returns [schemas/AppReturn/collaborators.yaml] 
+
+* Removing a collaborator from a project
+** DELETE ${host}/projects/${projectID}/Collaborators/${collaborator tenant id}   

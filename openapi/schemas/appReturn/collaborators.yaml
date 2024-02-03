@@ -1,0 +1,25 @@
+type: object
+properties:
+  friendlyName:
+    type: string
+  tenantID:
+    type: string
+    format: uuid
+  status:
+    type: string
+    enum:
+    - PENDING
+    - ACTIVE
+  projects:
+    type: array
+    items:
+      type: object
+      properties:
+        projectName:
+          type: string
+        projectID:
+          type: string
+          format: uuid
+      required:
+      - projectName
+      - projectID

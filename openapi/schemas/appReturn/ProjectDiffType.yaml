@@ -7,6 +7,9 @@ properties:
         type: string
       new:
         type: string
+  projectCreator:
+    type: string
+    format: uuid      
   customMetaData:
     type: object
     additionalProperties:

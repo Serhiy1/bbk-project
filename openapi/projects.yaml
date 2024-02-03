@@ -94,7 +94,7 @@ paths:
                 type: object
                 properties:
                   projectDetails:
-                    $ref: './schemas/appReturn/ProjectType.yaml''
+                    $ref: './schemas/appReturn/ProjectType.yaml'
                   diffs:
                     type: array
                     items:

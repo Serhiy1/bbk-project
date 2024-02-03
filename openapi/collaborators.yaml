@@ -1,0 +1,73 @@
+openapi: 3.0.0
+info:
+  title: Collaborators API
+  version: 1.0.0
+paths:
+  /collaborators:
+    post:
+      summary: Adding a collaborator
+      security:
+      - jwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./schemas/userSubmit/collaborators.yaml
+      responses:
+        '201':
+          description: Collaborator added
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/appReturn/collaborators.yaml
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Collaborator Not Found
+        '400':
+          description: Other errors, including adding self
+    get:
+      summary: Viewing all collaborators
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: List of all collaborators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./schemas/appReturn/collaborators.yaml
+        '403':
+          description: JWT authentication required
+  /collaborators/{collaboratorTenantUuid}:
+    get:
+      summary: Viewing a single collaborator
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: Details of a specific collaborator
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/appReturn/collaborators.yaml
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Collaborator not found
+    delete:
+      summary: Removing a collaborator
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: Collaborator removed
+        '400':
+          description: Cannot remove collaborator, still present on projects
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Collaborator not found

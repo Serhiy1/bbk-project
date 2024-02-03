@@ -1,0 +1,90 @@
+openapi: 3.0.0
+info:
+  title: Project Collaborators API
+  version: 1.0.0
+paths:
+  /projects/{projectID}/Collaborators:
+    post:
+      summary: Adding a Collaborator to a project
+      security:
+      - jwtAuth: []
+      parameters:
+      - name: projectID
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborator:
+                  type: string
+                  format: uuid
+              required:
+              - collaborator
+      responses:
+        '201':
+          description: Collaborator added to the project
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Project ID not found
+    get:
+      summary: Viewing Current collaborators on a project
+      security:
+      - jwtAuth: []
+      parameters:
+      - name: projectID
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: List of project collaborators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./schemas/AppReturn/collaborators.yaml
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Project ID not found
+  /projects/{projectID}/Collaborators/{collaboratorTenantId}:
+    delete:
+      summary: Removing a collaborator from a project
+      security:
+      - jwtAuth: []
+      parameters:
+      - name: projectID
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: collaboratorTenantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Collaborator removed from the project
+        '400':
+          description: Cannot remove collaborator, still present on projects
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Collaborator or Project ID not found
+components:
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
