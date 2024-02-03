@@ -1,0 +1,14 @@
+type: object
+properties:
+  projectName:
+    type: string
+    maxLength: 64
+    pattern: '^\S(.*\S)?$'
+  customMetaData:
+    type: object
+    additionalProperties:
+      type: string
+      maxLength: 1024
+      pattern: '^\S(.*\S)?$'
+required:
+  - projectName

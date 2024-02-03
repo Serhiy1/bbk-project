@@ -1,0 +1,12 @@
+type: object
+properties:
+  attachmentName:
+    type: string
+    maxLength: 64
+    pattern: '^\S(.*\S)?$'
+  blobUuid:
+    type: string
+    format: uuid
+required:
+  - attachmentName
+  - blobUuid

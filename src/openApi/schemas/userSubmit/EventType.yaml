@@ -1,0 +1,23 @@
+type: object
+properties:
+  eventName:
+    type: string
+    maxLength: 64
+    pattern: '^\S(.*\S)?$'
+  eventType:
+    type: string
+    maxLength: 64
+    pattern: '^\S(.*\S)?$'
+  customMetaData:
+    type: object
+    additionalProperties:
+      type: string
+      maxLength: 1024
+      pattern: '^\S(.*\S)?$'
+  attachments:
+    type: array
+    items:
+      $ref: './AttachmentType.yaml'
+required:
+  - eventName
+  - eventType

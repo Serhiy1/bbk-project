@@ -1,0 +1,20 @@
+type: object
+properties:
+  eventId:
+    type: string
+    format: uuid
+  eventDate:
+    type: string
+    format: date
+  eventName:
+    type: string
+  eventType:
+    type: string
+  customMetaData:
+    type: object
+    additionalProperties:
+      type: string
+  attachments:
+    type: array
+    items:
+      $ref: '../userSubmit/AttachmentType.yaml'

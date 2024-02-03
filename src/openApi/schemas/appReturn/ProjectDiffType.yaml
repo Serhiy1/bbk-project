@@ -1,0 +1,18 @@
+type: object
+properties:
+  projectName:
+    type: object
+    properties:
+      old:
+        type: string
+      new:
+        type: string
+  customMetaData:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        old:
+          type: string
+        new:
+          type: string

@@ -165,23 +165,45 @@ All Paths require a Jwt Authentication, otherwise 403 is returned
 * Returns a list of project ID with their details 
 
 ==== API Paths
-All Paths require a Jwt Authentication, otherwise 403 is returned
-Any Validation errors are 400 responses
+* All Paths require a Jwt Authentication, otherwise 403 is returned
+* Any Validation errors are 400 responses + violation explanation 
+* Any project IDs or Event ID's that are not found return 404 responses
+
+===== Types
+* "project submission type" : {{"project name (Required)" : str, "Custom Meta data (optional)" : {str : str}} } 
+* "project return type" : {"project name": str, "Project ID" : uuid, "Started Date" : Date, "Custom Meta data (if present)" : {str : str}}
+
+* "project diff submission type": {{"project name (optional)" : str, "Custom Meta data (optional)" : {str : str}} } 
+* "Return diff type": {"project name" : {"old" : str, "new" : str}, "custom meta data" : {str: {"old" : str, "new" : str}}}
+
+// Event references
+* Attachment type {"attachment name (Required)" : "blob uuid (Required)" : uuid}
+* Event Submission Type {"Event Name (Required)" : str, "Event type (Required)" : str, "Custom Meta Data (optional)" : {str : str} : "attachments (optional)": {"attachment type"} }
+* Event return type {"Event ID" : uuid, "Event Date" : Date, (unpack event submission type)}
+
+===== Input validators
+Project name : (1-64 chars (control chars disallowed) )
+Custom meta Data: (optional)(key: 1-64 chars, value: 1024 chars (control chars disallowed))
+attachment name : (1-64 chars (control chars disallowed) )
+event name : (1-64 chars (control chars disallowed))
+event type : (1-64 chars (control chars disallowed))
+
 * Creating a project 
-** POST ${host}/Projects     {"project name" : str, "Custom Meta data" : {str : str}}
-** Returns 201 {"project name": str, "Project ID" : uuid, "Started Date" : Date, "Custom Meta data" : {str : str}} (This is a project type)
+** POST ${host}/Projects  "project submission type"   
+** Returns 201  "Project Return type" 
 
 * Updating a project
-** PATCH ${host}/Projects/${projectID}     {"project name" : str, "Custom Meta data" : {str : str}}      (This is a diff type)
-** return 200 (not sure) {"project name": str, "Project ID" : uuid, "Started Date" : Date, "Custom Meta data" : {str : str}} 
+** PATCH ${host}/Projects/${projectID}     "project diff submission type"
+** return 200 (not sure)    "Return diff type" 
 
 * Project Overview 
 ** GET ${host}/Projects/${projectID}
-** Return 200 {"project name": str, "Project ID" : uuid, "Started Date" : Date, "Custom Meta data" : {str : str}, [Diffs], [Events]}
+** Return 200 {"project return type", ["Return diff type"], ["Event return type"]}
+** return 404 if project is not found
 
 * View all projects
 ** GET ${host}/Projects
-** Return 200 {[project]}
+** Return 200 {["project return type"]}
 
 === Events
 
@@ -193,14 +215,36 @@ Any Validation errors are 400 responses
 * POST JSON to the project id with event suffix
 * Returns A list of all the events on the project
  
-3. Attaching Rich Items to an event
-// https://cloud.google.com/storage/?hl=en
-* POST the data the rich evidence endpoint
-// See if metadata can be added
-* Returns an id for the evidence
-* POST an event to a project with said ID  
+==== API paths
+* All Paths require a Jwt Authentication, otherwise 403 is returned  
+* Any Validation errors are 400 responses  
+* Any project IDs or Event ID's that are not found return 404 responses
+
+* Create an event on a project
+** POST ${host}/Projects/${project ID}/events      userSubmit/EventType
+** Returns 201  AppReturn/EventType
+
+* View Single Event
+** GET ${host}/Projects/${project ID}/events/${event ID}
+** Returns 200 AppReturn/EventType
+
+* View all Events on a project 
+** GET ${host}/Projects/${project ID}/events
+** Returns 200 [AppReturn/EventType]
 
 
+=== Upload Attachments API Paths
+* All Paths require a Jwt Authentication, otherwise 403 is returned  
+* Any blobID's that are not found return 404 responses
+
+* Creating a attachment so it can be referenced in a event 
+** POST ${host}/attachments    {"filename" : str, "extension" : str, binary data}
+** Returns 201 {"blob uuid" : uuid, "upload date": Date }
+
+
+* Creating a attachment so it can be referenced in a event 
+** GET ${host}/attachments/${blob uuid}
+** Returns 200 blob data
 
 
 === Collaborators 
@@ -231,4 +275,6 @@ Any Validation errors are 400 responses
 * DELETE to collaborator tenant ID to collaborators endpoint
 * collaborator ID is removed from list 
 * Status on Collaborator side is set to PENDING 
+
+==== 
 

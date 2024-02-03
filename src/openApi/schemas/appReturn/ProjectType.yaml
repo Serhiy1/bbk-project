@@ -1,0 +1,14 @@
+type: object
+properties:
+  projectName:
+    type: string
+  projectId:
+    type: string
+    format: uuid
+  startedDate:
+    type: string
+    format: date
+  customMetaData:
+    type: object
+    additionalProperties:
+      type: string

@@ -36,8 +36,6 @@ paths:
           description: Email already in use
         '400':
           description: Password complexity not met
-        '400':
-          description: Bad request due to parameter type mismatch or other validation errors
 
   /login:
     post:

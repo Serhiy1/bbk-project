@@ -1,0 +1,87 @@
+paths:
+  /Projects/{projectId}/events:
+    post:
+      summary: Create an event on a project
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/userSubmit/EventType.yaml'
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/appReturn/EventType.yaml'
+        '400':
+          description: Validation error
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Project ID not found
+
+    get:
+      summary: View all Events on a project
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of events for the project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/appReturn/EventType.yaml'
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Project ID not found
+
+  /Projects/{projectId}/events/{eventId}:
+    get:
+      summary: View Single Event
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/appReturn/EventType.yaml'
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Project ID or Event ID not found
