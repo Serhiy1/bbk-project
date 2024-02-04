@@ -221,16 +221,16 @@ event type : (1-64 chars (control chars disallowed))
 * Any project IDs or Event ID's that are not found return 404 responses
 
 * Create an event on a project
-** POST ${host}/Projects/${project ID}/events      userSubmit/EventType
-** Returns 201  AppReturn/EventType
+** POST ${host}/Projects/${project ID}/events      Request/EventType
+** Returns 201  Response/EventType
 
 * View Single Event
 ** GET ${host}/Projects/${project ID}/events/${event ID}
-** Returns 200 AppReturn/EventType
+** Returns 200 Response/EventType
 
 * View all Events on a project 
 ** GET ${host}/Projects/${project ID}/events
-** Returns 200 [AppReturn/EventType]
+** Returns 200 [Response/EventType]
 
 
 === Upload Attachments API Paths
@@ -283,20 +283,20 @@ event type : (1-64 chars (control chars disallowed))
 * All Paths require a Jwt Authentication, otherwise 403 is returned  
 * Any collaborators ID's that are not found return 404 responses
 
-schemas/userSubmit/collaborators.yaml = {"friendly name": str (1-64 chars (control chars disallowed)), tenantID: uuid}
-schemas/AppReturn/collaborators.yaml = {"friendly name": str , tenantID: uuid, status: "PENDING|ACTIVE"}
+schemas/Request/collaborators.yaml = {"friendly name": str (1-64 chars (control chars disallowed)), tenantID: uuid}
+schemas/Response/collaborators.yaml = {"friendly name": str , tenantID: uuid, status: "PENDING|ACTIVE"}
 
 * Adding collaborator
-** POST ${host}/collaborators   userSubmit/collaborators.yaml
-** returns 201 AppReturn/collaborators.yaml
+** POST ${host}/collaborators   Request/collaborators.yaml
+** returns 201 Response/collaborators.yaml
 
 * Viewing a single collaborator 
 ** GET ${host}/collaborators/${collaborator tenant id}   
-** returns 200 AppReturn/collaborators.yaml
+** returns 200 Response/collaborators.yaml
 
 * Viewing all collaborators 
 ** GET ${host}/collaborators   
-** returns 200 [AppReturn/collaborators.yaml]
+** returns 200 [Response/collaborators.yaml]
 
 * Removing a collaborator 
 ** DELETE ${host}/collaborators/${collaborator tenant id}
@@ -312,7 +312,7 @@ schemas/AppReturn/collaborators.yaml = {"friendly name": str , tenantID: uuid, s
 
 * Viewing Current collaborators on a project
 ** GET ${host}/projects/${projectID}/Collaborators
-** returns [schemas/AppReturn/collaborators.yaml] 
+** returns [schemas/Response/collaborators.yaml] 
 
 * Removing a collaborator from a project
 ** DELETE ${host}/projects/${projectID}/Collaborators/${collaborator tenant id}   

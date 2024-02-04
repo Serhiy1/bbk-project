@@ -2,64 +2,28 @@ apis:
   applications:
     root: ./openapi/applications.yaml
     x-openapi-ts:
-      output: ./src/app/api/applications.ts
+      output: ./src/app/models/applications.ts
   attachments:
     root: ./openapi/attachments.yaml
     x-openapi-ts:
-      output: ./src/app/api/attachments.ts
+      output: ./src/app/models/attachments.ts
   authentication:
     root: ./openapi/authentication.yaml
     x-openapi-ts:
-      output: ./src/app/api/authentication.ts
+      output: ./src/app/models/authentication.ts
   collaborators:
     root: ./openapi/collaborators.yaml
     x-openapi-ts:
-      output: ./src/app/api/collaborators.ts
+      output: ./src/app/models/collaborators.ts
   events:
     root: ./openapi/events.yaml
     x-openapi-ts:
-      output: ./src/app/api/events.ts
+      output: ./src/app/models/events.ts
   projectCollaborators:
     root: ./openapi/projectCollaborators.yaml
     x-openapi-ts:
-      output: ./src/app/api/projectCollaborators.ts
+      output: ./src/app/models/projectCollaborators.ts
   projects:
     root: ./openapi/projects.yaml
     x-openapi-ts:
-      output: ./src/app/api/projects.ts
-  # appReturnCollaborators:
-  #   root: ./openapi/schemas/appReturn/collaborators.yaml
-  #   x-openapi-ts:
-  #     output: ./src/app/api/appReturn/collaborators.ts
-  # appReturnEventType:
-  #   root: ./openapi/schemas/appReturn/EventType.yaml
-  #   x-openapi-ts:
-  #     output: ./src/app/api/appReturn/EventType.ts
-  # appReturnProjectDiffType:
-  #   root: ./openapi/schemas/appReturn/ProjectDiffType.yaml
-  #   x-openapi-ts:
-  #     output: ./src/app/api/appReturn/ProjectDiffType.ts
-  # appReturnProjectType:
-  #   root: ./openapi/schemas/appReturn/ProjectType.yaml
-  #   x-openapi-ts:
-  #     output: ./src/app/api/appReturn/ProjectType.ts
-  # userSubmitAttachmentType:
-  #   root: ./openapi/schemas/userSubmit/AttachmentType.yaml
-  #   x-openapi-ts:
-  #     output: ./src/app/api/userSubmit/AttachmentType.ts
-  # userSubmitCollaborators:
-  #   root: ./openapi/schemas/userSubmit/collaborators.yaml
-  #   x-openapi-ts:
-  #     output: ./src/app/api/userSubmit/collaborators.ts
-  # userSubmitEventType:
-  #   root: ./openapi/schemas/userSubmit/EventType.yaml
-  #   x-openapi-ts:
-  #     output: ./src/app/api/userSubmit/EventType.ts
-  # userSubmitProjectDiffType:
-  #   root: ./openapi/schemas/userSubmit/ProjectDiffType.yaml
-  #   x-openapi-ts:
-  #     output: ./src/app/api/userSubmit/ProjectDiffType.ts
-  # userSubmitProjectType:
-  #   root: ./openapi/schemas/userSubmit/ProjectType.yaml
-  #   x-openapi-ts:
-  #     output: ./src/app/api/userSubmit/ProjectType.ts
+      output: ./src/app/models/projects.ts

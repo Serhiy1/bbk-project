@@ -13,14 +13,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./schemas/userSubmit/collaborators.yaml
+              $ref: ./schemas/Request/collaboratorsRequest.yaml
       responses:
         '201':
           description: Collaborator added
           content:
             application/json:
               schema:
-                $ref: ./schemas/appReturn/collaborators.yaml
+                $ref: ./schemas/Response/collaboratorsResponse.yaml
         '403':
           description: JWT authentication required
         '404':
@@ -39,7 +39,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: ./schemas/appReturn/collaborators.yaml
+                  $ref: ./schemas/Response/collaboratorsResponse.yaml
         '403':
           description: JWT authentication required
   /collaborators/{collaboratorTenantUuid}:
@@ -53,7 +53,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./schemas/appReturn/collaborators.yaml
+                $ref: ./schemas/Response/collaboratorsResponse.yaml
         '403':
           description: JWT authentication required
         '404':

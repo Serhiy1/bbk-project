@@ -27,7 +27,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["collaborators"][];
+                        "application/json": components["schemas"]["collaboratorsResponse"][];
                     };
                 };
                 /** @description JWT authentication required */
@@ -50,7 +50,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["collaborators-2"];
+                    "application/json": components["schemas"]["collaboratorsRequest"];
                 };
             };
             responses: {
@@ -60,7 +60,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["collaborators"];
+                        "application/json": components["schemas"]["collaboratorsResponse"];
                     };
                 };
                 /** @description Other errors, including adding self */
@@ -115,7 +115,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["collaborators"];
+                        "application/json": components["schemas"]["collaboratorsResponse"];
                     };
                 };
                 /** @description JWT authentication required */
@@ -185,7 +185,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        collaborators: {
+        collaboratorsResponse: {
             friendlyName?: string;
             /** Format: uuid */
             tenantID?: string;
@@ -197,7 +197,7 @@ export interface components {
                 projectID: string;
             }[];
         };
-        "collaborators-2": {
+        collaboratorsRequest: {
             friendlyName: string;
             /** Format: uuid */
             tenantID: string;

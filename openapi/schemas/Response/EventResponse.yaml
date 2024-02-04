@@ -17,4 +17,4 @@ properties:
   attachments:
     type: array
     items:
-      $ref: '../userSubmit/AttachmentType.yaml'
+      $ref: '../Request/AttachmentRequest.yaml'

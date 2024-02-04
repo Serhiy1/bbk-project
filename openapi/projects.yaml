@@ -13,14 +13,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: './schemas/userSubmit/ProjectType.yaml'
+              $ref: './schemas/Request/ProjectRequest.yaml'
       responses:
         '201':
           description: Project created successfully
           content:
             application/json:
               schema:
-                $ref: './schemas/appReturn/ProjectType.yaml'
+                $ref: './schemas/Response/ProjectResponse.yaml'
         '400':
           description: Validation error
         '403':
@@ -38,7 +38,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: './schemas/appReturn/ProjectType.yaml'
+                  $ref: './schemas/Response/ProjectResponse.yaml'
         '403':
           description: JWT authentication required
 
@@ -59,14 +59,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: './schemas/userSubmit/ProjectDiffType.yaml'
+              $ref: './schemas/Request/ProjectDiffRequest.yaml'
       responses:
         '200':
           description: Project updated successfully
           content:
             application/json:
               schema:
-                $ref: './schemas/appReturn/ProjectDiffType.yaml'
+                $ref: './schemas/Response/ProjectDiffResponse.yaml'
         '400':
           description: Validation error
         '403':
@@ -94,15 +94,15 @@ paths:
                 type: object
                 properties:
                   projectDetails:
-                    $ref: './schemas/appReturn/ProjectType.yaml'
+                    $ref: './schemas/Response/ProjectResponse.yaml'
                   diffs:
                     type: array
                     items:
-                      $ref: './schemas/appReturn/ProjectDiffType.yaml'
+                      $ref: './schemas/Response/ProjectDiffResponse.yaml'
                   events:
                     type: array
                     items:
-                      $ref: './schemas/appReturn/EventType.yaml'
+                      $ref: './schemas/Response/EventResponse.yaml'
         '404':
           description: Project ID not found
         '403':

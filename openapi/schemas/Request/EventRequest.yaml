@@ -17,7 +17,7 @@ properties:
   attachments:
     type: array
     items:
-      $ref: './AttachmentType.yaml'
+      $ref: './AttachmentRequest.yaml'
 required:
   - eventName
   - eventType

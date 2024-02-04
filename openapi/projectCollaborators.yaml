@@ -51,7 +51,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: ./schemas/AppReturn/collaborators.yaml
+                  $ref: ./schemas/Response/collaboratorsResponse.yaml
         '403':
           description: JWT authentication required
         '404':

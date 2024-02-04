@@ -4,32 +4,32 @@
  */
 
 export interface paths {
-    "/Projects/{projectId}/events": {
+    "/projects/{projectID}/Collaborators": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** View all Events on a project */
+        /** Viewing Current collaborators on a project */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    projectId: string;
+                    projectID: string;
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description List of events for the project */
+                /** @description List of project collaborators */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["EventType"][];
+                        "application/json": components["schemas"]["collaboratorsResponse"][];
                     };
                 };
                 /** @description JWT authentication required */
@@ -49,32 +49,85 @@ export interface paths {
             };
         };
         put?: never;
-        /** Create an event on a project */
+        /** Adding a Collaborator to a project */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    projectId: string;
+                    projectID: string;
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["EventType-2"];
+                    "application/json": {
+                        /** Format: uuid */
+                        collaborator: string;
+                    };
                 };
             };
             responses: {
-                /** @description Event created successfully */
+                /** @description Collaborator added to the project */
                 201: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": components["schemas"]["EventType"];
-                    };
+                    content?: never;
                 };
-                /** @description Validation error */
+                /** @description JWT authentication required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Project ID not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{projectID}/Collaborators/{collaboratorTenantId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removing a collaborator from a project */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    projectID: string;
+                    collaboratorTenantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Collaborator removed from the project */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Cannot remove collaborator, still present on projects */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -88,7 +141,7 @@ export interface paths {
                     };
                     content?: never;
                 };
-                /** @description Project ID not found */
+                /** @description Collaborator or Project ID not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -97,60 +150,6 @@ export interface paths {
                 };
             };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/Projects/{projectId}/events/{eventId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** View Single Event */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    projectId: string;
-                    eventId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Event details */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["EventType"];
-                    };
-                };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Project ID or Event ID not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -160,30 +159,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        AttachmentType: {
-            attachmentName: string;
+        collaboratorsResponse: {
+            friendlyName?: string;
             /** Format: uuid */
-            blobUuid: string;
-        };
-        EventType: {
-            /** Format: uuid */
-            eventId?: string;
-            /** Format: date */
-            eventDate?: string;
-            eventName?: string;
-            eventType?: string;
-            customMetaData?: {
-                [key: string]: string | undefined;
-            };
-            attachments?: components["schemas"]["AttachmentType"][];
-        };
-        "EventType-2": {
-            eventName: string;
-            eventType: string;
-            customMetaData?: {
-                [key: string]: string | undefined;
-            };
-            attachments?: components["schemas"]["AttachmentType"][];
+            tenantID?: string;
+            /** @enum {string} */
+            status?: "PENDING" | "ACTIVE";
+            projects?: {
+                projectName: string;
+                /** Format: uuid */
+                projectID: string;
+            }[];
         };
     };
     responses: never;

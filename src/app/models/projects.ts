@@ -27,7 +27,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ProjectType"][];
+                        "application/json": components["schemas"]["ProjectResponse"][];
                     };
                 };
                 /** @description JWT authentication required */
@@ -50,7 +50,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["ProjectType-2"];
+                    "application/json": components["schemas"]["ProjectRequest"];
                 };
             };
             responses: {
@@ -60,7 +60,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ProjectType"];
+                        "application/json": components["schemas"]["ProjectResponse"];
                     };
                 };
                 /** @description Validation error */
@@ -111,9 +111,9 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            projectDetails?: components["schemas"]["ProjectType"];
-                            diffs?: components["schemas"]["ProjectDiffType"][];
-                            events?: components["schemas"]["EventType"][];
+                            projectDetails?: components["schemas"]["ProjectResponse"];
+                            diffs?: components["schemas"]["ProjectDiffResponse"][];
+                            events?: components["schemas"]["EventResponse"][];
                         };
                     };
                 };
@@ -150,7 +150,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["ProjectDiffType-2"];
+                    "application/json": components["schemas"]["ProjectDiffRequest"];
                 };
             };
             responses: {
@@ -160,7 +160,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ProjectDiffType"];
+                        "application/json": components["schemas"]["ProjectDiffResponse"];
                     };
                 };
                 /** @description Validation error */
@@ -192,7 +192,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        ProjectType: {
+        ProjectResponse: {
             projectName?: string;
             /** Format: uuid */
             projectId?: string;
@@ -202,13 +202,13 @@ export interface components {
                 [key: string]: string | undefined;
             };
         };
-        "ProjectType-2": {
+        ProjectRequest: {
             projectName: string;
             customMetaData?: {
                 [key: string]: string | undefined;
             };
         };
-        ProjectDiffType: {
+        ProjectDiffResponse: {
             projectName?: {
                 old?: string;
                 new?: string;
@@ -222,12 +222,12 @@ export interface components {
                 } | undefined;
             };
         };
-        AttachmentType: {
+        AttachmentRequest: {
             attachmentName: string;
             /** Format: uuid */
             blobUuid: string;
         };
-        EventType: {
+        EventResponse: {
             /** Format: uuid */
             eventId?: string;
             /** Format: date */
@@ -237,9 +237,9 @@ export interface components {
             customMetaData?: {
                 [key: string]: string | undefined;
             };
-            attachments?: components["schemas"]["AttachmentType"][];
+            attachments?: components["schemas"]["AttachmentRequest"][];
         };
-        "ProjectDiffType-2": {
+        ProjectDiffRequest: {
             projectName?: string;
             customMetaData?: {
                 [key: string]: {
