@@ -284,10 +284,12 @@
     "eslint-plugin-html": "^7.1.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-simple-import-sort": "^10.0.0",
+    "jest-serial-runner": "^1.2.1",
     "nodemon": "^3.0.1",
     "openapi-typescript": "^7.0.0-next.7",
     "openapi-typescript-validator": "^4.0.0",
     "prettier": "^3.1.0",
+    "ts-jest": "^29.1.2",
     "typescript": "^5.3.3"
   }
 }
