@@ -23,17 +23,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "multipart/form-data": {
-                        /** @description Name of the file */
-                        filename: string;
-                        /** @description File extension */
-                        extension: string;
-                        /**
-                         * Format: binary
-                         * @description Binary data of the file
-                         */
-                        file: string;
-                    };
+                    "multipart/form-data": components["schemas"]["AttachmentRequest"];
                 };
             };
             responses: {
@@ -43,12 +33,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** Format: uuid */
-                            blobUuid?: string;
-                            /** Format: date */
-                            uploadDate?: string;
-                        };
+                        "application/json": components["schemas"]["AttachmentResponse"];
                     };
                 };
                 /** @description Validation error */
@@ -86,8 +71,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    /** @description UUID of the blob to retrieve */
-                    blobUuid: string;
+                    blobUuid: components["schemas"]["BlobUuid"];
                 };
                 cookie?: never;
             };
@@ -129,7 +113,30 @@ export interface paths {
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        AttachmentRequest: {
+            /** @description Name of the file */
+            filename: string;
+            /** @description File extension */
+            extension: string;
+            /**
+             * Format: binary
+             * @description Binary data of the file
+             */
+            file: string;
+        };
+        AttachmentResponse: {
+            /** Format: uuid */
+            blobUuid: string;
+            /** Format: date */
+            uploadDate: string;
+        };
+        /**
+         * Format: uuid
+         * @description UUID of the blob to retrieve
+         */
+        BlobUuid: string;
+    };
     responses: never;
     parameters: never;
     requestBodies: never;

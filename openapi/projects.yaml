@@ -1,8 +1,100 @@
 openapi: 3.0.0
 info:
-  title: Project Management API
+  title: Project Collaborators API
   version: 1.0.0
+tags:
+  - name: projectCollaborators_other
+    x-displayName: other
+  - name: projects_other
+    x-displayName: other
+  - name: events_other
+    x-displayName: other
 paths:
+  /projects/{projectID}/Collaborators:
+    post:
+      summary: Adding a Collaborator to a project
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: projectID
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborator:
+                  type: string
+                  format: uuid
+              required:
+                - collaborator
+      responses:
+        '201':
+          description: Collaborator added to the project
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Project ID not found
+      tags:
+        - projectCollaborators_other
+    get:
+      summary: Viewing Current collaborators on a project
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: projectID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of project collaborators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/Response/collaboratorsResponse.yaml'
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Project ID not found
+      tags:
+        - projectCollaborators_other
+  /projects/{projectID}/Collaborators/{collaboratorTenantId}:
+    delete:
+      summary: Removing a collaborator from a project
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: projectID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collaboratorTenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Collaborator removed from the project
+        '400':
+          description: Cannot remove collaborator, still present on projects
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Collaborator or Project ID not found
+      tags:
+        - projectCollaborators_other
   /Projects:
     post:
       summary: Creating a project
@@ -25,7 +117,8 @@ paths:
           description: Validation error
         '403':
           description: JWT authentication required
-
+      tags:
+        - projects_other
     get:
       summary: View all projects
       security:
@@ -41,7 +134,8 @@ paths:
                   $ref: './schemas/Response/ProjectResponse.yaml'
         '403':
           description: JWT authentication required
-
+      tags:
+        - projects_other
   /Projects/{projectId}:
     patch:
       summary: Updating a project
@@ -73,7 +167,8 @@ paths:
           description: JWT authentication required
         '404':
           description: Project ID not found
-
+      tags:
+        - projects_other
     get:
       summary: Project Overview
       security:
@@ -103,15 +198,105 @@ paths:
                     type: array
                     items:
                       $ref: './schemas/Response/EventResponse.yaml'
-        '404':
-          description: Project ID not found
         '403':
           description: JWT authentication required
-
+        '404':
+          description: Project ID not found
+      tags:
+        - projects_other
+  /Projects/{projectId}/events:
+    post:
+      summary: Create an event on a project
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/Request/EventRequest.yaml'
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/Response/EventResponse.yaml'
+        '400':
+          description: Validation error
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Project ID not found
+      tags:
+        - events_other
+    get:
+      summary: View all Events on a project
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of events for the project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/Response/EventResponse.yaml'
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Project ID not found
+      tags:
+        - events_other
+  /Projects/{projectId}/events/{eventId}:
+    get:
+      summary: View Single Event
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/Response/EventResponse.yaml'
+        '403':
+          description: JWT authentication required
+        '404':
+          description: Project ID or Event ID not found
+      tags:
+        - events_other
 components:
   securitySchemes:
     jwtAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-     

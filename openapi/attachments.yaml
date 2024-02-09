@@ -12,36 +12,14 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                filename:
-                  type: string
-                  description: Name of the file
-                extension:
-                  type: string
-                  description: File extension
-                file:
-                  type: string
-                  format: binary
-                  description: Binary data of the file
-              required:
-                - filename
-                - extension
-                - file
+              $ref: '#/components/schemas/AttachmentRequest'
       responses:
         '201':
           description: Attachment created successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  blobUuid:
-                    type: string
-                    format: uuid
-                  uploadDate:
-                    type: string
-                    format: date
+                $ref: '#/components/schemas/AttachmentResponse'
         '400':
           description: Validation error
         '403':
@@ -57,9 +35,7 @@ paths:
           name: blobUuid
           required: true
           schema:
-            type: string
-            format: uuid
-          description: UUID of the blob to retrieve
+            $ref: '#/components/schemas/BlobUuid'
       responses:
         '200':
           description: Attachment data
@@ -72,3 +48,47 @@ paths:
           description: Blob UUID not found
         '403':
           description: JWT authentication required
+
+components:
+  schemas:
+    AttachmentRequest:
+      type: object
+      properties:
+        filename:
+          type: string
+          description: Name of the file
+        extension:
+          type: string
+          description: File extension
+        file:
+          type: string
+          format: binary
+          description: Binary data of the file
+      required:
+        - filename
+        - extension
+        - file
+
+    AttachmentResponse:
+      type: object
+      properties:
+        blobUuid:
+          type: string
+          format: uuid
+        uploadDate:
+          type: string
+          format: date
+      required:
+        - blobUuid
+        - uploadDate
+
+    BlobUuid:
+      type: string
+      format: uuid
+      description: UUID of the blob to retrieve
+
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

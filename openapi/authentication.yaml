@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: User Authentication API
-  version: 1.0.0  
+  version: 1.0.0
 paths:
   /signup:
     post:
@@ -11,32 +11,18 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-                username:
-                  type: string
+              $ref: '#/components/schemas/SignupRequest'
       responses:
         '200':
           description: Signup successful
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                  tenantID:
-                    type: string
+                $ref: '#/components/schemas/SignupResponse'
         '409':
           description: Email already in use
         '400':
           description: Password complexity not met
-
   /login:
     post:
       summary: User login
@@ -45,50 +31,92 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
           description: Login successful
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
+                $ref: '#/components/schemas/LoginResponse'
         '404':
           description: Email does not exist
         '401':
           description: Password does not match
         '400':
-          description: Bad request due to parameter type mismatch or other validation errors
-
+          description: Bad request due to parameter type mismatch or other validation
+            errors
   /whoami:
     get:
       summary: User identity
       security:
-        - jwtAuth: []
+      - jwtAuth: []
       responses:
         '200':
           description: User identity returned
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  email:
-                    type: string
-                  tenantID:
-                    type: string
+                $ref: '#/components/schemas/UserResponse'
+        '403':
+          description: User is not authenticated          
+          
 components:
   securitySchemes:
     jwtAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  schemas:
+    SignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        username:
+          type: string
+      required:
+      - email
+      - password
+      - username
+    SignupResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        tenantID:
+          type: string
+      required:
+      - token
+      - tenantID
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+      - email
+      - password
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+      - token
+    UserResponse:
+      type: object
+      properties:
+        email:
+          type: string
+        tenantID:
+          type: string
+      required:
+      - email
+      - tenantID

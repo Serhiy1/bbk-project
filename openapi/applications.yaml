@@ -14,13 +14,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  appID:
-                    type: string
-                    format: uuid
-                  secret:
-                    type: string
+                $ref: '#/components/schemas/ApplicationResponse'
         '403':
           description: Forbidden, JWT authentication required
 
@@ -34,8 +28,7 @@ paths:
           name: appID
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: '#/components/schemas/UUID'
           description: The ID of the application to roll the secret for
       responses:
         '200':
@@ -43,13 +36,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  appID:
-                    type: string
-                    format: uuid
-                  secret:
-                    type: string
+                $ref: '#/components/schemas/ApplicationResponse'
         '403':
           description: Forbidden, JWT authentication required
 
@@ -63,8 +50,7 @@ paths:
           name: appID
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: '#/components/schemas/UUID'
           description: The ID of the application to delete
       responses:
         '204':
@@ -73,6 +59,18 @@ paths:
           description: Forbidden, JWT authentication required
 
 components:
+  schemas:
+    ApplicationResponse:
+      type: object
+      properties:
+        appID:
+          type: string
+          format: uuid
+        secret:
+          type: string
+    UUID:
+      type: string
+      format: uuid
   securitySchemes:
     jwtAuth:
       type: http

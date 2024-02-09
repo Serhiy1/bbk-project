@@ -4,43 +4,47 @@
  */
 
 export interface paths {
-    "/Projects/{projectId}/events": {
+    "/signup": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** View all Events on a project */
-        get: {
+        get?: never;
+        put?: never;
+        /** User signup */
+        post: {
             parameters: {
                 query?: never;
                 header?: never;
-                path: {
-                    projectId: string;
-                };
+                path?: never;
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SignupRequest"];
+                };
+            };
             responses: {
-                /** @description List of events for the project */
+                /** @description Signup successful */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["EventResponse"][];
+                        "application/json": components["schemas"]["SignupResponse"];
                     };
                 };
-                /** @description JWT authentication required */
-                403: {
+                /** @description Password complexity not met */
+                400: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
-                /** @description Project ID not found */
-                404: {
+                /** @description Email already in use */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -48,47 +52,59 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
         put?: never;
-        /** Create an event on a project */
+        /** User login */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
-                path: {
-                    projectId: string;
-                };
+                path?: never;
                 cookie?: never;
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["EventRequest"];
+                    "application/json": components["schemas"]["LoginRequest"];
                 };
             };
             responses: {
-                /** @description Event created successfully */
-                201: {
+                /** @description Login successful */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["EventResponse"];
+                        "application/json": components["schemas"]["LoginResponse"];
                     };
                 };
-                /** @description Validation error */
+                /** @description Bad request due to parameter type mismatch or other validation errors */
                 400: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
-                /** @description JWT authentication required */
-                403: {
+                /** @description Password does not match */
+                401: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
-                /** @description Project ID not found */
+                /** @description Email does not exist */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -103,44 +119,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/Projects/{projectId}/events/{eventId}": {
+    "/whoami": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** View Single Event */
+        /** User identity */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
-                path: {
-                    projectId: string;
-                    eventId: string;
-                };
+                path?: never;
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Event details */
+                /** @description User identity returned */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["EventResponse"];
+                        "application/json": components["schemas"]["UserResponse"];
                     };
                 };
-                /** @description JWT authentication required */
+                /** @description User is not authenticated */
                 403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Project ID or Event ID not found */
-                404: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -160,30 +166,27 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        AttachmentRequest: {
-            attachmentName: string;
-            /** Format: uuid */
-            blobUuid: string;
+        SignupRequest: {
+            /** Format: email */
+            email: string;
+            password: string;
+            username: string;
         };
-        EventResponse: {
-            /** Format: uuid */
-            eventId?: string;
-            /** Format: date */
-            eventDate?: string;
-            eventName?: string;
-            eventType?: string;
-            customMetaData?: {
-                [key: string]: string | undefined;
-            };
-            attachments?: components["schemas"]["AttachmentRequest"][];
+        SignupResponse: {
+            token: string;
+            tenantID: string;
         };
-        EventRequest: {
-            eventName: string;
-            eventType: string;
-            customMetaData?: {
-                [key: string]: string | undefined;
-            };
-            attachments?: components["schemas"]["AttachmentRequest"][];
+        LoginRequest: {
+            /** Format: email */
+            email: string;
+            password: string;
+        };
+        LoginResponse: {
+            token: string;
+        };
+        UserResponse: {
+            email: string;
+            tenantID: string;
         };
     };
     responses: never;

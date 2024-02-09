@@ -2,28 +2,20 @@ apis:
   applications:
     root: ./openapi/applications.yaml
     x-openapi-ts:
-      output: ./src/app/models/applications.ts
+      output: .src\app\models\openapi\applications.ts
   attachments:
     root: ./openapi/attachments.yaml
     x-openapi-ts:
-      output: ./src/app/models/attachments.ts
+      output: .src\app\models\openapi\attachments.ts
   authentication:
     root: ./openapi/authentication.yaml
     x-openapi-ts:
-      output: ./src/app/models/authentication.ts
+      output: .src\app\models\openapi\authentication.ts
   collaborators:
     root: ./openapi/collaborators.yaml
     x-openapi-ts:
-      output: ./src/app/models/collaborators.ts
-  events:
-    root: ./openapi/events.yaml
-    x-openapi-ts:
-      output: ./src/app/models/events.ts
-  projectCollaborators:
-    root: ./openapi/projectCollaborators.yaml
-    x-openapi-ts:
-      output: ./src/app/models/projectCollaborators.ts
+      output: .src\app\models\openapi\collaborators.ts
   projects:
     root: ./openapi/projects.yaml
     x-openapi-ts:
-      output: ./src/app/models/projects.ts
+      output: .src\app\models\openapi\projects.ts
