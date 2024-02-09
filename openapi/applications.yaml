@@ -65,7 +65,7 @@ components:
       properties:
         appID:
           type: string
-          format: uuid
+          format: uuid          
         secret:
           type: string
     UUID:

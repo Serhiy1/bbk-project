@@ -76,6 +76,11 @@ components:
           format: email
         password:
           type: string
+          format: password
+          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+          description: >
+            Password must contain at least 8 characters, one uppercase letter, one lowercase letter,
+            one number, and one special character (@$!%*?&).
         username:
           type: string
       required:
@@ -117,6 +122,9 @@ components:
           type: string
         tenantID:
           type: string
+        username:
+          type: string
       required:
       - email
+      - username
       - tenantID

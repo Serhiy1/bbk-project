@@ -7,4 +7,4 @@ readme.md
 tsconfig.json
 .eslintrc.cjs
 .prettierrc.json
-src/app/models/*.ts
+src/app/models/openapi/*.ts

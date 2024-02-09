@@ -24,3 +24,9 @@ export class ServerError extends HttpError {
     super(500, message);
   }
 }
+
+export class ResourceInUseError extends HttpError {
+  constructor(message: string) {
+    super(409, message);
+  }
+}

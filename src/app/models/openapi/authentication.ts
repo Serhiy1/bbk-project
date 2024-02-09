@@ -169,6 +169,11 @@ export interface components {
         SignupRequest: {
             /** Format: email */
             email: string;
+            /**
+             * Format: password
+             * @description Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).
+             *
+             */
             password: string;
             username: string;
         };
@@ -187,6 +192,7 @@ export interface components {
         UserResponse: {
             email: string;
             tenantID: string;
+            username: string;
         };
     };
     responses: never;

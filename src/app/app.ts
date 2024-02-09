@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler } from "express";
-import express from "express";
+import express, { Request, Response } from "express";
 
 import { HttpError, NotFoundError } from "./errors/errors";
 
@@ -12,7 +12,7 @@ app.use((req, res, next) => {
 });
 
 // generic error handler
-const errorHandler: ErrorRequestHandler = (err: HttpError, req, res) => {
+const errorHandler: ErrorRequestHandler = (err: HttpError, req: Request, res: Response) => {
   res.statusCode = err.statuscode;
   res.json({
     message: err.message,
