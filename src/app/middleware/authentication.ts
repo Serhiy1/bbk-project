@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
+import { body } from "express-validator";
 import jwt from "jsonwebtoken";
 
 import { JWTSignKey } from "../../config/config";
 import { UnAuthenticatedError } from "../errors/errors";
-import { UserTokenInfo } from "../models/database/user";
 
 export const AuthRequired = (req: Request, res: Response, next: NextFunction) => {
   if (req.headers.authorization === undefined) {
@@ -21,34 +21,16 @@ export const AuthRequired = (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export function NewToken(user: UserTokenInfo) {
-  const token = jwt.sign(
-    {
-      email: user.email,
-      username: user.userName,
-      id: user._id,
-      tenancy: user.tenancyId,
-    },
-    JWTSignKey,
-    { expiresIn: "1 hour" }
-  );
-  return token;
-}
+export const signup = () => [
+  body("email", "Invalid email format").isEmail().normalizeEmail(),
+  body(
+    "password",
+    "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)."
+  ).isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1 }),
+  body("username", "Username is required").not().isEmpty().trim().escape(),
+];
 
-export function DecodeToken(token: string): UserTokenInfo | null {
-  try {
-    const decoded = jwt.verify(token, JWTSignKey) as UserTokenInfo;
-
-    const userTokenInfo: UserTokenInfo = {
-      email: decoded.email,
-      userName: decoded.userName,
-      _id: decoded._id,
-      tenancyId: decoded.tenancyId,
-    };
-
-    return userTokenInfo;
-  } catch (error) {
-    console.error("Error decoding token:", error);
-    return null; // or handle the error as you see fit
-  }
-}
+export const login = () => [
+  body("email", "Invalid email format").isEmail().normalizeEmail(),
+  body("password", "Password is required").not().isEmpty(),
+];

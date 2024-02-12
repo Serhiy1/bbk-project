@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/signup": {
+    "/user/signup": {
         parameters: {
             query?: never;
             header?: never;
@@ -58,7 +58,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/login": {
+    "/user/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -119,7 +119,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/whoami": {
+    "/user/whoami": {
         parameters: {
             query?: never;
             header?: never;

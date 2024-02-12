@@ -1,9 +1,9 @@
 import http from "http";
 
+import { connectionString } from "../config/config";
 import { app } from "./app";
-import { connectToDatabase, GetEnvValue } from "./utils/utils";
+import { connectToDatabase } from "./utils/utils";
 
-const connectionString = GetEnvValue("MongoConnectionString");
 connectToDatabase(connectionString);
 
 const port = process.env.PORT || 3001;

@@ -30,3 +30,9 @@ export class ResourceInUseError extends HttpError {
     super(409, message);
   }
 }
+
+export class UserInputError extends HttpError {
+  constructor(message: string) {
+    super(400, message);
+  }
+}

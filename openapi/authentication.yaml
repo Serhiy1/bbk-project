@@ -3,7 +3,7 @@ info:
   title: User Authentication API
   version: 1.0.0
 paths:
-  /signup:
+  /user/signup:
     post:
       summary: User signup
       requestBody:
@@ -23,7 +23,7 @@ paths:
           description: Email already in use
         '400':
           description: Password complexity not met
-  /login:
+  /user/login:
     post:
       summary: User login
       requestBody:
@@ -46,7 +46,7 @@ paths:
         '400':
           description: Bad request due to parameter type mismatch or other validation
             errors
-  /whoami:
+  /user/whoami:
     get:
       summary: User identity
       security:
