@@ -516,9 +516,15 @@ export interface components {
             customMetaData?: {
                 [key: string]: string | undefined;
             };
+            projectDescription?: string;
+            /** @enum {string} */
+            projectStatus?: "ACTIVE" | "INACTIVE";
         };
         ProjectRequest: {
             projectName: string;
+            projectDescription: string;
+            /** @enum {string} */
+            projectStatus: "ACTIVE" | "INACTIVE";
             customMetaData?: {
                 [key: string]: string | undefined;
             };
@@ -527,6 +533,16 @@ export interface components {
             projectName?: {
                 old?: string;
                 new?: string;
+            };
+            projectDescription?: {
+                old?: string;
+                new?: string;
+            };
+            projectStatus?: {
+                /** @enum {unknown} */
+                old?: "ACTIVE" | "INACTIVE";
+                /** @enum {unknown} */
+                new?: "ACTIVE" | "INACTIVE";
             };
             /** Format: uuid */
             projectCreator?: string;
@@ -556,6 +572,9 @@ export interface components {
         };
         ProjectDiffRequest: {
             projectName?: string;
+            projectDescription?: string;
+            /** @enum {string} */
+            projectStatus?: "ACTIVE" | "INACTIVE";
             customMetaData?: {
                 [key: string]: {
                     old?: string;

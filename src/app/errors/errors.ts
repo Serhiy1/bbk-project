@@ -36,3 +36,9 @@ export class UserInputError extends HttpError {
     super(400, message);
   }
 }
+
+export class NotImplimentedError extends HttpError {
+  constructor(message: string) {
+    super(501, message);
+  }
+}

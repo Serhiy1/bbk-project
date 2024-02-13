@@ -223,7 +223,6 @@ describe("whoami Validation", () => {
     const res = await request(app).get("/user/whoami").set("Authorization", `Bearer ${NonexistentToken}`);
     expect(res.statusCode).toBe(404);
   });
-  
 });
 
 /* Closing database connection at the end of the suite. */
