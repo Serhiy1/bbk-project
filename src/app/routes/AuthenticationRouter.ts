@@ -3,8 +3,7 @@ import express, { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 
 import { NotFoundError, ResourceInUseError, ServerError, UnAuthenticatedError } from "../errors/errors";
-import { AuthRequired, login, signup } from "../middleware/authentication";
-import { validate } from "../middleware/validate";
+import { AuthRequired } from "../middleware/authentication";
 import { newTenancy } from "../models/database/tenancy";
 import { newUser, User } from "../models/database/user";
 import {
@@ -15,6 +14,8 @@ import {
   UserResponse,
 } from "../models/types/authentications";
 import { DecodeToken, NewToken } from "../utils/token";
+import { login, signup } from "../validation/authentication";
+import { validate } from "../validation/validate";
 
 export const authenticationRouter = express.Router();
 
