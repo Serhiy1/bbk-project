@@ -22,4 +22,3 @@ properties:
 required:
   - projectName
   - projectDescription
-  - projectStatus

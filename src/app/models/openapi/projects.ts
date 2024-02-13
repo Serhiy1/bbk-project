@@ -524,7 +524,7 @@ export interface components {
             projectName: string;
             projectDescription: string;
             /** @enum {string} */
-            projectStatus: "ACTIVE" | "INACTIVE";
+            projectStatus?: "ACTIVE" | "INACTIVE";
             customMetaData?: {
                 [key: string]: string | undefined;
             };
