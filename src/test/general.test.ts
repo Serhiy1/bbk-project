@@ -16,7 +16,6 @@ beforeAll(async () => {
   connectToDatabase(uri);
 });
 
-
 test("Test that unknown routes return 404", async () => {
   const res = await request(app).get("/unknown/route");
   expect(res.statusCode).toBe(404);

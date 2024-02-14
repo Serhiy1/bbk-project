@@ -13,7 +13,7 @@ import {
   SignupResponse,
   UserResponse,
 } from "../models/types/authentications";
-import { DecodeToken, NewToken } from "../utils/token";
+import { DecodeTokenFromHeader, NewToken } from "../utils/token";
 import { login, signup } from "../validation/authentication";
 import { validate } from "../validation/validate";
 
@@ -21,7 +21,7 @@ export const authenticationRouter = express.Router();
 
 authenticationRouter.post(
   "/signup",
-  validate(signup()),
+  validate(signup),
   async (req: Request<never, SignupResponse, SignupRequest>, res: Response<SignupResponse>, next: NextFunction) => {
     console.debug(`processing signup request ${req.body}`);
     try {
@@ -38,6 +38,7 @@ authenticationRouter.post(
 
       const tenancy = newTenancy({
         _id: new mongoose.Types.ObjectId(),
+        projects: [],
       });
 
       const user = newUser({
@@ -61,7 +62,7 @@ authenticationRouter.post(
 
 authenticationRouter.post(
   "/login",
-  validate(login()),
+  validate(login),
   async (req: Request<never, LoginResponse, LoginRequest>, res: Response<LoginResponse>, next: NextFunction) => {
     try {
       const email = req.body.email;
@@ -96,20 +97,21 @@ authenticationRouter.get(
   "/whoami",
   AuthRequired,
   async (req: Request<never, UserResponse>, res: Response<UserResponse>, next: NextFunction) => {
-    const authHeader = req.headers.authorization as string;
-    const token = authHeader.split(" ")[1];
+    try {
+      const decodedInfo = DecodeTokenFromHeader(req);
+      const user = await User.findOne({ _id: decodedInfo._id });
 
-    const decodedInfo = DecodeToken(token);
-    const user = await User.findOne({ _id: decodedInfo._id });
-
-    if (user == null) {
-      next(new NotFoundError("user not found"));
-    } else {
-      res.status(200).send({
-        email: user.email,
-        tenantID: `${user.tenancyId}`,
-        username: user.userName,
-      });
+      if (user == null) {
+        next(new NotFoundError("user not found"));
+      } else {
+        res.status(200).send({
+          email: user.email,
+          tenantID: `${user.tenancyId}`,
+          username: user.userName,
+        });
+      }
+    } catch (error) {
+      next(new ServerError((error as Error).message));
     }
   }
 );

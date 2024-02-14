@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import {expect } from "@jest/globals";
+import { expect } from "@jest/globals";
 import { Express } from "express";
 import request from "supertest";
 
@@ -24,19 +24,16 @@ export class Person {
   }
 }
 
-
 export async function SignupPerson(person: Person, app: Express) {
-  
-  const signup_info : SignupRequest = {
+  const signup_info: SignupRequest = {
     email: person.email,
     username: person.userName,
     password: person.password,
-  }
-  
+  };
+
   const res = await request(app).post("/user/signup").send(signup_info);
   expect(res.statusCode).toBe(201);
   return res.body.token;
-  
 }
 
 // Create A new Random Project object using faker
@@ -45,23 +42,23 @@ export function CreateRandomProject(): ProjectRequest {
     projectName: faker.lorem.words(3),
     projectDescription: faker.lorem.sentence(),
     projectStatus: "ACTIVE",
-    customMetaData: { 
+    customMetaData: {
       [faker.lorem.word()]: faker.lorem.word(),
       [faker.lorem.word()]: faker.lorem.word(),
       [faker.lorem.word()]: faker.lorem.word(),
-    }
+    },
   };
 }
 
-// Create A new Random Event object using faker 
+// Create A new Random Event object using faker
 export function CreateRandomEvent(): EventRequest {
   return {
     eventName: faker.lorem.words(3),
     eventType: "INFO",
-    customMetaData: { 
+    customMetaData: {
       [faker.lorem.word()]: faker.lorem.word(),
       [faker.lorem.word()]: faker.lorem.word(),
       [faker.lorem.word()]: faker.lorem.word(),
-    }
+    },
   };
 }

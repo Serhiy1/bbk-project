@@ -1,7 +1,10 @@
 import mongoose, { model, Schema } from "mongoose";
 
+import { EventRequest, EventResponse } from "../types/projects";
+
 interface IEvent {
   eventId: mongoose.Types.ObjectId;
+  projectId: mongoose.Types.ObjectId;
   eventDate: Date;
   eventName: string;
   eventType: string;
@@ -20,6 +23,33 @@ const EventSchema = new Schema<IEvent>({
 
 export const Event = model<IEvent>("Event", EventSchema);
 
-export function newEvent(eventInfo: IEvent) {
+function newEvent(eventInfo: IEvent) {
   return new Event(eventInfo);
+}
+EventSchema.set("toObject", {
+  transform(doc, ret) {
+    const obj: EventResponse = {
+      eventId: ret.eventId,
+      eventDate: ret.eventDate,
+      eventName: ret.eventName,
+      eventType: ret.eventType,
+      customMetaData: ret.customMetaData,
+    };
+
+    return obj;
+  },
+});
+
+export function newEventFromRequest(eventInfo: EventRequest, projectId: mongoose.Types.ObjectId) {
+  const customMetaData = (eventInfo?.customMetaData as { [key: string]: string }) || {};
+
+  return newEvent({
+    eventId: new mongoose.Types.ObjectId(),
+    projectId: projectId,
+    eventDate: new Date(),
+    eventName: eventInfo.eventName,
+    eventType: eventInfo.eventType,
+    customMetaData: customMetaData,
+    attachments: [],
+  });
 }

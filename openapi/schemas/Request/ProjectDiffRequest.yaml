@@ -16,13 +16,6 @@ properties:
   customMetaData:
     type: object
     additionalProperties:
-      type: object
-      properties:
-        old:
-          type: string
-          maxLength: 1024
-          pattern: '^\S(.*\S)?$'
-        new:
-          type: string
-          maxLength: 1024
-          pattern: '^\S(.*\S)?$'
+      type: string
+      maxLength: 1024
+      pattern: '^\S(.*\S)?$'

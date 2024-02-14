@@ -1,9 +1,9 @@
 import { body, param } from "express-validator";
 
-export const createProject = () => [
+export const createProject = [
   body("projectName", "Project Name is required").not().isEmpty().trim().escape(),
   body("projectDescription", "Project Description is required").not().isEmpty().trim().escape(),
-  body("projectStatus", "Project Status is required").not().isEmpty().trim().escape(),
+  body("projectStatus", "S").optional().isIn(["ACTIVE", "INACTIVE"]).trim().escape(),
   body("customMetaData", "Custom Meta should be a string to string map")
     .optional()
     .isObject()
@@ -17,14 +17,12 @@ export const createProject = () => [
     }),
 ];
 
-export const projectIDParam = () => [
-  param("projectId", "Project ID is required").not().isEmpty().isUUID().trim().escape(),
-];
+export const projectIDParam = [param("projectId", "Project ID is required").not().isEmpty().isUUID().trim().escape()];
 
-export const updateProject = () => [
+export const updateProject = [
   body("projectName", "Project Name is required").optional().trim().escape(),
   body("projectDescription", "Project Description is required").optional().trim().escape(),
-  body("projectStatus", "Project Status is required").optional().trim().escape(),
+  body("projectStatus", "Needs to ACTIVE or INACTIVE").optional().isIn(["ACTIVE", "INACTIVE"]).trim().escape(),
   body("customMetaData", "Custom Meta should be a string to string map")
     .optional()
     .isObject()

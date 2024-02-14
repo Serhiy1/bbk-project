@@ -1,3 +1,4 @@
+import { Request } from "express";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 
@@ -35,4 +36,11 @@ export function DecodeToken(token: string): UserTokenInfo {
   };
 
   return userTokenInfo;
+}
+
+/* Warning This Function assumes that you have used the AuthReequired Middleware */
+export function DecodeTokenFromHeader(req: Request): UserTokenInfo {
+  const authHeader = req.headers.authorization as string;
+  const token = authHeader.split(" ")[1];
+  return DecodeToken(token);
 }

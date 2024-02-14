@@ -576,10 +576,7 @@ export interface components {
             /** @enum {string} */
             projectStatus?: "ACTIVE" | "INACTIVE";
             customMetaData?: {
-                [key: string]: {
-                    old?: string;
-                    new?: string;
-                } | undefined;
+                [key: string]: string | undefined;
             };
         };
         EventRequest: {

@@ -1,6 +1,6 @@
 import { body } from "express-validator";
 
-export const signup = () => [
+export const signup = [
   body("email", "Invalid email format").isEmail().normalizeEmail(),
   body(
     "password",
@@ -9,7 +9,7 @@ export const signup = () => [
   body("username", "Username is required").not().isEmpty().trim().escape(),
 ];
 
-export const login = () => [
+export const login = [
   body("email", "Invalid email format").isEmail().normalizeEmail(),
   body("password", "Password is required").not().isEmpty(),
 ];

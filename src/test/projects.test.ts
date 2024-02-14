@@ -1,18 +1,16 @@
 /* Tests that cover the Projects Endpoint */
 
-import { expect,test } from "@jest/globals";
-// temporary no operation test 
+import { expect, test } from "@jest/globals";
+// temporary no operation test
 
-test('no-op', () => {
-    expect(true).toBe(true);
+test("no-op", () => {
+  expect(true).toBe(true);
 });
 
 // import { SignupRequest } from "../app/models/types/authentications";
 // import { ProjectRequest } from "../app/models/types/projects";
 // import { EventRequest } from "../app/models/types/projects";
 // import { SignupPerson, CreateRandomProject, CreateRandomEvent } from "../test/utils";
-
-
 
 // Describe positive tests
 
@@ -32,35 +30,38 @@ test('no-op', () => {
 
 //      Test 8 - Fetch all project for an empty tenant should succeed
 
+//      Test 9 - Fetch all events for an empty project should succeed
 
+//      Test 10 - Set project status to INACTIVE
 
+//      Test 11 - Check No New Events can be created for an INACTIVE project
 
-// ProjectRequest: {
-//     projectName: string;
-//     projectDescription: string;
-//     /** @enum {string} */
-//     projectStatus?: "ACTIVE" | "INACTIVE";
-//     customMetaData?: {
-//         [key: string]: string | undefined;
-//     };
-// };
+//      Test 12 - Toggle Inactive project to ACTIVE and create a new event
 
 // Describe project input Validation tests
 
-//      Test 1 - missing projectName should fail
+//      Test 1 - missing projectName should repond with 400
 
-//      Test 2 - missing projectDescription should fail
+//      Test 2 - missing projectDescription should respond with 400
 
-//      Test 3 - missing projectStatus should be fine
+//      Test 3 - missing projectStatus should be respond with 400
 
-//      Test 4 - missing customMetaData should be fine
+//      Test 4 - missing customMetaData should respond with 200
 
-//      Test 5 - Non string customMetaData should fail
+//      Test 5 - Non string customMetaData should respond with 400
 
-//      Test 6 - Missing project ID Paramater should fail
+//      Test 6 - Get project with Missing project ID Paramater respond with 400
 
-//      Test 7 - Non UUID project ID Paramater should fail
+//      Test 7 - Get project with Non UUID project ID Paramater respond with 400
 
-//      Test 8 - Missing project ID Paramater should fail
+//      Test 8 - Get project with non-existing project ID Paramater should respond with 404
 
-//      Test 9 - Non-existing project ID Paramater should fail
+//      Test 9 - Getting a project from a different tenant should respond with 404
+
+// Desacribe Authentication tests
+
+//      Test 1 - Create a new project without authentication should respond with 403
+
+//      Test 2 - Create a new Event without authentication should respond with 403
+
+//      Test 3 - Fetch all projects without authentication should respond with 403
