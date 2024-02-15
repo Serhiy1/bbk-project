@@ -3,10 +3,10 @@ import { expect } from "@jest/globals";
 import { Express } from "express";
 import request from "supertest";
 
-import { UserTokenInfo } from "../app/models/database/user";
 import { SignupRequest } from "../app/models/types/authentications";
 import { ProjectRequest } from "../app/models/types/projects";
 import { EventRequest } from "../app/models/types/projects";
+import { UserTokenInfo } from "../app/utils/token";
 
 export class Person {
   userName: string;

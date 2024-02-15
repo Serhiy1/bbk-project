@@ -215,7 +215,7 @@ describe("whoami Validation", () => {
 
     const NonexistentToken = NewToken({
       email: NonExistentPerson.email,
-      _id: new mongoose.Types.ObjectId(),
+      UserId: new mongoose.Types.ObjectId(),
       userName: NonExistentPerson.userName,
       tenancyId: new mongoose.Types.ObjectId(),
     });

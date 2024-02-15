@@ -3,8 +3,9 @@ import mongoose from "mongoose";
 
 import { NotFoundError, NotImplimentedError, ServerError } from "../errors/errors";
 import { AuthRequired } from "../middleware/authentication";
-import { createDiff, ListallEventsOnProject, newProjectFromRequest, Project, updateProjectFromDiff } from "../models/database/project";
-import { AssertProjectInTenancy, ListProjectsOnTenancy, Tenancy } from "../models/database/tenancy";
+import { Event } from "../models/database/event";
+import { Project, ProjectDocument } from "../models/database/project";
+import { Tenancy, TenancyDocument } from "../models/database/tenancy";
 import {
   CollaboratorsResponse,
   EventRequest,
@@ -32,15 +33,13 @@ ProjectRouter.post(
       const tenancy = await Tenancy.findById(token.tenancyId);
 
       if (tenancy === null) {
-        return next(new ServerError("Tenancy for user not found"));
+        return next(new ServerError("Tenancy is Not found"));
       }
 
-      const newProject = await newProjectFromRequest(req.body, tenancy._id).save();
-      await newProject.save();
-
-      const projectResponse: ProjectResponse = newProject.toObject();
-
-      return res.status(201).send(projectResponse);
+      const project = await Project.NewProjectFromRequest(req.body, tenancy._id);
+      tenancy.projects.push(project._id);
+      Promise.all([project.save(), tenancy.save()]);
+      res.status(201).send(project.ToProjectResponse());
     } catch (error) {
       return next(new ServerError((error as Error).message));
     }
@@ -56,11 +55,11 @@ ProjectRouter.get(
       const tenancy = await Tenancy.findById(token.tenancyId);
 
       if (tenancy === null) {
-        return next(new ServerError("Tenancy for user not found"));
+        return next(new ServerError("Tenancy is Not found"));
       }
 
-      const projects = await ListProjectsOnTenancy(tenancy._id);
-      return res.status(200).send(projects);
+      const projects = await tenancy.ListProjects();
+      res.status(200).send(projects);
     } catch (error) {
       return next(new ServerError((error as Error).message));
     }
@@ -73,30 +72,9 @@ ProjectRouter.get(
   validate(projectIDParam),
   async (req: Request<projectId>, res: Response<ProjectResponse>, next: NextFunction) => {
     try {
-      const token = DecodeTokenFromHeader(req);
-      const tenancy = await Tenancy.findById(token.tenancyId);
-
-      if (tenancy === null) {
-        return next(new ServerError("Tenancy for user not found"));
-      }
-
-      const exists = await AssertProjectInTenancy(tenancy._id, new mongoose.Types.ObjectId(req.params.projectId));
-
-      if (!exists) {
-        return next(new NotFoundError("Project not found"));
-      }
-
-      const project = await Project.findById(req.params.projectId);
-
-      if (project === null) {
-        return next(
-          new ServerError("Project Reference Found in tenancy record but not found in the project collection")
-        );
-      }
-
-      const projectResponse: ProjectResponse = project.toObject();
-
-      return res.status(200).send(projectResponse);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [project, _] = await FetchProjectFromRequestSafe(req);
+      res.status(200).send(project.ToProjectResponse());
     } catch (error) {
       return next(new ServerError((error as Error).message));
     }
@@ -115,17 +93,11 @@ ProjectRouter.patch(
   ) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [tenancy, project] = await FetchProjectFromRequestSafe(req);
-      
-      // Given the try-catch block, if an error is thrown above, the lines below won't execute unless both tenancy and project are valid.
-      const diff = createDiff(project, req.body);
-      updateProjectFromDiff(project, req.body); // Ensure this function is defined and correctly updates the project.
+      const [project, _] = await FetchProjectFromRequestSafe(req);
+      const diff = project.createDiffResponse(req.body);
       project.diffs.push(diff);
-
       await project.save();
-
-      return res.status(200).send(diff);
-      // Create the diff object
+      res.status(200).send(diff);
     } catch (error) {
       return next(new ServerError((error as Error).message));
     }
@@ -139,15 +111,10 @@ ProjectRouter.get(
   validate(projectIDParam),
   async (req: Request<projectId>, res: Response<EventResponse[]>, next: NextFunction) => {
     try {
-      const [tenancy, project] = await FetchProjectFromRequestSafe(req);
-      
-      if (tenancy instanceof Error || project instanceof Error || project === null) {
-        return next(tenancy || project);  
-      }
-      
-      const events = await ListallEventsOnProject(project._id);
-      return res.status(200).send(events);
-      
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [project, _] = await FetchProjectFromRequestSafe(req);
+      const events = await project.ListallEvents();
+      res.status(200).send(events);
     } catch (error) {
       return next(new ServerError((error as Error).message));
     }
@@ -159,21 +126,14 @@ ProjectRouter.post(
   AuthRequired,
   validate(projectIDParam),
   async (req: Request<projectId, EventResponse, EventRequest>, res: Response<EventResponse>, next: NextFunction) => {
-    
     try {
-      const [tenancy, project] = await FetchProjectFromRequestSafe(req);
-      
-  
-      if (tenancy instanceof Error || project instanceof Error || project === null) {
-        return next(tenancy || project);  
-      }
-      
-  
-      
-    
-      
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [project, _] = await FetchProjectFromRequestSafe(req);
+      const event = await Event.NewEventFromRequest(req.body);
+      project.events.push(event._id);
+      Promise.all([event.save(), project.save()]);
     } catch (error) {
-      return next((error as Error));
+      return next(error as Error);
     }
   }
 );
@@ -215,8 +175,7 @@ ProjectRouter.delete(
   }
 );
 
-
-async function FetchProjectFromRequestSafe(req: Request) : Promise<[typeof Tenancy | null, typeof Project | null]> {
+async function FetchProjectFromRequestSafe(req: Request): Promise<[ProjectDocument, TenancyDocument]> {
   const token = DecodeTokenFromHeader(req);
   const tenancy = await Tenancy.findById(token.tenancyId);
 
@@ -224,8 +183,8 @@ async function FetchProjectFromRequestSafe(req: Request) : Promise<[typeof Tenan
     throw new ServerError("Tenancy is Not found");
   }
 
-  const exists = await AssertProjectInTenancy(tenancy._id, new mongoose.Types.ObjectId(req.params.projectId));
-  if (!exists) {
+  const presentInTenancy = await tenancy.AssertProjectInTenancy(new mongoose.Types.ObjectId(req.params.projectId));
+  if (!presentInTenancy) {
     throw new NotFoundError("Project not found");
   }
 
@@ -233,6 +192,6 @@ async function FetchProjectFromRequestSafe(req: Request) : Promise<[typeof Tenan
   if (project === null) {
     throw new ServerError("Project Reference Found in tenancy record but not found in the project collection");
   }
-  
-  return [tenancy, project];
+
+  return [project, tenancy];
 }

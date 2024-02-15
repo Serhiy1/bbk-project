@@ -1,11 +1,10 @@
 import bcrypt from "bcrypt";
 import express, { NextFunction, Request, Response } from "express";
-import mongoose from "mongoose";
 
 import { NotFoundError, ResourceInUseError, ServerError, UnAuthenticatedError } from "../errors/errors";
 import { AuthRequired } from "../middleware/authentication";
-import { newTenancy } from "../models/database/tenancy";
-import { newUser, User } from "../models/database/user";
+import { Tenancy } from "../models/database/tenancy";
+import { User } from "../models/database/user";
 import {
   LoginRequest,
   LoginResponse,
@@ -29,30 +28,18 @@ authenticationRouter.post(
       const userName = req.body.username;
       const password = req.body.password;
 
-      const existingEmail = await User.findOne({ email });
-      if (existingEmail) {
+      if (await User.AlreadyExists(email)) {
         return next(new ResourceInUseError("Email already in use"));
       }
 
       const passwordHash = bcrypt.hashSync(password, 10);
-
-      const tenancy = newTenancy({
-        _id: new mongoose.Types.ObjectId(),
-        projects: [],
-      });
-
-      const user = newUser({
-        _id: new mongoose.Types.ObjectId(),
-        email: email,
-        userName: userName,
-        passwordHash: passwordHash,
-        tenancyId: tenancy.id,
-      });
+      const tenancy = await Tenancy.NewTenancy();
+      const user = await User.NewUser({ userName, email, passwordHash, tenancyId: tenancy._id });
 
       await tenancy.save();
       await user.save();
 
-      const token = NewToken({ email: email, _id: user.id, userName: userName, tenancyId: user.tenancyId });
+      const token = NewToken(user.toTokenInfo());
       res.status(201).send({ token: token, tenantID: tenancy.id });
     } catch (error) {
       next(new ServerError((error as Error).message));
@@ -79,12 +66,7 @@ authenticationRouter.post(
         return next(new UnAuthenticatedError("Auth Failed - Password does not match"));
       }
 
-      const token = NewToken({
-        email: email,
-        _id: existingUser.id,
-        userName: existingUser.userName,
-        tenancyId: existingUser.tenancyId,
-      });
+      const token = NewToken(existingUser.toTokenInfo());
 
       res.status(200).send({ token: token });
     } catch (error) {
@@ -99,16 +81,12 @@ authenticationRouter.get(
   async (req: Request<never, UserResponse>, res: Response<UserResponse>, next: NextFunction) => {
     try {
       const decodedInfo = DecodeTokenFromHeader(req);
-      const user = await User.findOne({ _id: decodedInfo._id });
+      const user = await User.findById(decodedInfo.UserId);
 
       if (user == null) {
         next(new NotFoundError("user not found"));
       } else {
-        res.status(200).send({
-          email: user.email,
-          tenantID: `${user.tenancyId}`,
-          username: user.userName,
-        });
+        res.status(200).send(user.toUserResponse());
       }
     } catch (error) {
       next(new ServerError((error as Error).message));

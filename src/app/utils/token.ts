@@ -1,22 +1,30 @@
 import { Request } from "express";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
+import mongoose from "mongoose";
 
 import { JWTSignKey } from "../../config/config";
-import { UserTokenInfo } from "../models/database/user";
 
-type tokenInfo = {
+interface tokenContents {
   email: string;
   username: string;
   id: Types.ObjectId;
   tenancy: Types.ObjectId;
 };
 
+export interface UserTokenInfo {
+  UserId: mongoose.Types.ObjectId;
+  userName: string;
+  email: string;
+  tenancyId: mongoose.Types.ObjectId;
+}
+
+
 export function NewToken(user: UserTokenInfo) {
-  const info: tokenInfo = {
+  const info: tokenContents = {
     email: user.email,
     username: user.userName,
-    id: user._id,
+    id: user.UserId,
     tenancy: user.tenancyId,
   };
 
@@ -26,12 +34,12 @@ export function NewToken(user: UserTokenInfo) {
 
 /* Warning This Function assumes that you have used the AuthReequired Middleware */
 export function DecodeToken(token: string): UserTokenInfo {
-  const decoded = jwt.verify(token, JWTSignKey) as tokenInfo;
+  const decoded = jwt.verify(token, JWTSignKey) as tokenContents;
 
   const userTokenInfo: UserTokenInfo = {
     email: decoded.email,
     userName: decoded.username,
-    _id: decoded.id,
+    UserId: decoded.id,
     tenancyId: decoded.tenancy,
   };
 
