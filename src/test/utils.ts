@@ -4,7 +4,7 @@ import { Express } from "express";
 import request from "supertest";
 
 import { SignupRequest } from "../app/models/types/authentications";
-import { ProjectRequest } from "../app/models/types/projects";
+import { ProjectDiffRequest, ProjectRequest } from "../app/models/types/projects";
 import { EventRequest } from "../app/models/types/projects";
 import { UserTokenInfo } from "../app/utils/token";
 
@@ -60,5 +60,13 @@ export function CreateRandomEvent(): EventRequest {
       [faker.lorem.word()]: faker.lorem.word(),
       [faker.lorem.word()]: faker.lorem.word(),
     },
+  };
+}
+
+// Create a random Diff object
+export function CreateRandomDiff(): ProjectDiffRequest {
+  return {
+    projectName: faker.lorem.words(3),
+    projectDescription: faker.lorem.sentence(),
   };
 }

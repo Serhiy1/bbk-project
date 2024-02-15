@@ -33,7 +33,6 @@ const TenancySchema = new Schema<ITenancy, ITenancyModel, ITenancyMethods>({
   projects: [{ type: Schema.Types.ObjectId, ref: Project, required: true }],
 });
 
-
 TenancySchema.static("NewTenancy", async function NewTenancy(): Promise<HydratedDocument<ITenancy, ITenancyMethods>> {
   return this.create({
     _id: new mongoose.Types.ObjectId(),
@@ -43,18 +42,15 @@ TenancySchema.static("NewTenancy", async function NewTenancy(): Promise<Hydrated
 
 TenancySchema.method("ListProjects", async function ListProjects(): Promise<ProjectResponse[]> {
   const projectIDs = this.projects;
-  if (!projectIDs) {
-    return [];
-  }
-  
+
   // call toObject to convert the Mongoose Document to a plain JS object
   const projects = await Project.find({ _id: { $in: projectIDs } });
   const projectResponses: ProjectResponse[] = [];
-  
+
   for (const project of projects) {
     projectResponses.push(project.ToProjectResponse());
   }
-  
+
   return projectResponses;
 });
 
@@ -63,6 +59,6 @@ TenancySchema.method(
   async function AssertProjectInTenancy(projectId: mongoose.Types.ObjectId): Promise<boolean> {
     return this.projects.includes(projectId);
   }
-  );
-  
+);
+
 export const Tenancy = model<ITenancy, ITenancyModel>("Tenancy", TenancySchema);

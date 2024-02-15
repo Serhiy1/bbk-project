@@ -560,6 +560,8 @@ export interface components {
         };
         EventResponse: {
             /** Format: uuid */
+            projectId?: string;
+            /** Format: uuid */
             eventId?: string;
             /** Format: date */
             eventDate?: string;

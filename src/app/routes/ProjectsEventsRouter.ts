@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 
-import { NotFoundError, NotImplimentedError, ServerError } from "../errors/errors";
+import { NotFoundError, NotImplimentedError, ServerError, UserInputError } from "../errors/errors";
 import { AuthRequired } from "../middleware/authentication";
 import { Event } from "../models/database/event";
 import { Project, ProjectDocument } from "../models/database/project";
@@ -94,8 +94,7 @@ ProjectRouter.patch(
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [project, _] = await FetchProjectFromRequestSafe(req);
-      const diff = project.createDiffResponse(req.body);
-      project.diffs.push(diff);
+      const diff = project.applyDiff(req.body);
       await project.save();
       res.status(200).send(diff);
     } catch (error) {
@@ -129,7 +128,7 @@ ProjectRouter.post(
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [project, _] = await FetchProjectFromRequestSafe(req);
-      const event = await Event.NewEventFromRequest(req.body);
+      const event = await Event.NewEventFromRequest(req.body, project._id);
       project.events.push(event._id);
       Promise.all([event.save(), project.save()]);
     } catch (error) {
@@ -191,6 +190,10 @@ async function FetchProjectFromRequestSafe(req: Request): Promise<[ProjectDocume
   const project = await Project.findById(req.params.projectId);
   if (project === null) {
     throw new ServerError("Project Reference Found in tenancy record but not found in the project collection");
+  }
+
+  if (!project.IsActive()) {
+    throw new UserInputError("Project is not active");
   }
 
   return [project, tenancy];

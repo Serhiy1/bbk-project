@@ -10,7 +10,7 @@ interface tokenContents {
   username: string;
   id: Types.ObjectId;
   tenancy: Types.ObjectId;
-};
+}
 
 export interface UserTokenInfo {
   UserId: mongoose.Types.ObjectId;
@@ -18,7 +18,6 @@ export interface UserTokenInfo {
   email: string;
   tenancyId: mongoose.Types.ObjectId;
 }
-
 
 export function NewToken(user: UserTokenInfo) {
   const info: tokenContents = {

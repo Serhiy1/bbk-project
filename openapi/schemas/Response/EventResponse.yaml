@@ -1,5 +1,8 @@
 type: object
 properties:
+  projectId:
+    type: string
+    format: uuid
   eventId:
     type: string
     format: uuid

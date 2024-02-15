@@ -33,8 +33,8 @@ interface IProjectMethods {
   ListallEvents: () => Promise<EventResponse[]>;
   ToProjectResponse: () => ProjectResponse;
   IsPartOfTenancy: (tenancyId: mongoose.Types.ObjectId) => boolean;
-  createDiffResponse: (updateRequest: ProjectDiffRequest) => ProjectDiffResponse;
-  applyDiff: (updateRequest: ProjectDiffRequest, diff: ProjectDiffResponse) => void;
+  applyDiff: (updateRequest: ProjectDiffRequest) => ProjectDiffResponse;
+  IsActive: () => boolean;
 }
 
 // Declare the Query helper
@@ -61,106 +61,92 @@ const ProjectSchema = new Schema<IProject, IProjectModel, IProjectMethods, IProj
   diffs: [{ type: Schema.Types.Mixed, required: true }],
 });
 
-
 ProjectSchema.static(
   "NewProjectFromRequest",
   async function NewProjectFromRequest(
     projectInfo: ProjectRequest,
     tenantId: mongoose.Types.ObjectId
-    ): Promise<ProjectDocument> {
-      const customMetaData = (projectInfo?.customMetaData as { [key: string]: string }) || {};
-      
-      return this.create({
-        _id: new mongoose.Types.ObjectId(),
-        projectName: projectInfo.projectName,
-        startedDate: new Date(),
-        customMetaData: customMetaData,
-        projectDescription: projectInfo.projectDescription,
-        projectStatus: "ACTIVE",
-        events: [],
-        Ownertenancy: tenantId,
-        diffs: [],
-      });
-    }
-    );
-    
-    ProjectSchema.method("ListallEvents", async function ListallEvents(): Promise<EventResponse[]> {
-      const eventIds = this.events;
-      const events = await Event.find({ _id: { $in: eventIds } });
-      return events.map((event) => event.ToEventResponse());
+  ): Promise<ProjectDocument> {
+    const customMetaData = (projectInfo?.customMetaData as { [key: string]: string }) || {};
+
+    return this.create({
+      _id: new mongoose.Types.ObjectId(),
+      projectName: projectInfo.projectName,
+      startedDate: new Date(),
+      customMetaData: customMetaData,
+      projectDescription: projectInfo.projectDescription,
+      projectStatus: "ACTIVE",
+      events: [],
+      Ownertenancy: tenantId,
+      diffs: [],
     });
-    
-    ProjectSchema.method("ToProjectResponse", function ToProjectResponse(): ProjectResponse {
-      const obj: ProjectResponse = {
-        projectId: this._id.toString(),
-        projectName: this.projectName,
-        startedDate: this.startedDate.toString(),
-        customMetaData: this.customMetaData,
-        projectDescription: this.projectDescription,
-        projectStatus: this.projectStatus,
-      };
-      return obj;
-    });
-    
-    ProjectSchema.method("IsPartOfTenancy", function IsPartOfTenancy(tenancyId: mongoose.Types.ObjectId): boolean {
-      return this.Ownertenancy.equals(tenancyId);
-    });
-    
-    ProjectSchema.method(
-      "createDiffResponse",
-      function createDiffResponse(updateRequest: ProjectDiffRequest): ProjectDiffResponse {
-        const diff: ProjectDiffResponse = {};
-        
-        if (updateRequest.projectName) {
-          diff.projectName = {
-            old: this.projectName,
-            new: updateRequest.projectName,
-          };
-        }
-        
-        if (updateRequest.projectDescription) {
-          diff.projectDescription = {
-            old: this.projectDescription,
-            new: updateRequest.projectDescription,
-          };
-        }
-        
-        if (updateRequest.projectStatus) {
-          diff.projectStatus = {
-            old: this.projectStatus,
-            new: updateRequest.projectStatus,
-          };
-        }
-        
-        if (updateRequest.customMetaData) {
-          diff.customMetaData = {
-        old: this.customMetaData,
-        new: updateRequest.customMetaData,
-      };
-    }
-    
-    return diff;
   }
-  );
-  
-  ProjectSchema.method("applyDiff", function applyDiff(updateRequest: ProjectDiffRequest, diff: ProjectDiffResponse) {
-    if (updateRequest.projectName) {
-      this.projectName = updateRequest.projectName;
-    }
-    
-    if (updateRequest.projectDescription) {
-      this.projectDescription = updateRequest.projectDescription;
-    }
-    
-    if (updateRequest.projectStatus) {
-      this.projectStatus = updateRequest.projectStatus;
-    }
-    
-    if (updateRequest.customMetaData) {
-      this.customMetaData = updateRequest.customMetaData as { [key: string]: string };
-    }
-    
-    this.diffs.push(diff);
-  });
-  
-  export const Project = model<IProject, IProjectModel>("Project", ProjectSchema);
+);
+
+ProjectSchema.method("ListallEvents", async function ListallEvents(): Promise<EventResponse[]> {
+  const eventIds = this.events;
+  const events = await Event.find({ _id: { $in: eventIds } });
+  return events.map((event) => event.ToEventResponse());
+});
+
+ProjectSchema.method("ToProjectResponse", function ToProjectResponse(): ProjectResponse {
+  const obj: ProjectResponse = {
+    projectId: this._id.toString(),
+    projectName: this.projectName,
+    startedDate: this.startedDate.toString(),
+    customMetaData: this.customMetaData,
+    projectDescription: this.projectDescription,
+    projectStatus: this.projectStatus,
+  };
+  return obj;
+});
+
+ProjectSchema.method("IsPartOfTenancy", function IsPartOfTenancy(tenancyId: mongoose.Types.ObjectId): boolean {
+  return this.Ownertenancy.equals(tenancyId);
+});
+
+ProjectSchema.method("applyDiff", function applyDiff(updateRequest: ProjectDiffRequest): ProjectDiffResponse {
+  const diff: ProjectDiffResponse = {};
+
+  if (updateRequest.projectName) {
+    diff.projectName = {
+      old: this.projectName,
+      new: updateRequest.projectName,
+    };
+    this.projectName = updateRequest.projectName;
+  }
+
+  if (updateRequest.projectDescription) {
+    diff.projectDescription = {
+      old: this.projectDescription,
+      new: updateRequest.projectDescription,
+    };
+    this.projectDescription = updateRequest.projectDescription;
+  }
+
+  if (updateRequest.projectStatus) {
+    diff.projectStatus = {
+      old: this.projectStatus,
+      new: updateRequest.projectStatus,
+    };
+    this.projectStatus = updateRequest.projectStatus;
+  }
+
+  if (updateRequest.customMetaData) {
+    diff.customMetaData = {
+      old: this.customMetaData,
+      new: updateRequest.customMetaData,
+    };
+    this.customMetaData = updateRequest.customMetaData as { [key: string]: string };
+  }
+
+  this.diffs.push(diff);
+
+  return diff;
+});
+
+ProjectSchema.method("IsActive", function IsActive(): boolean {
+  return this.projectStatus === "ACTIVE";
+});
+
+export const Project = model<IProject, IProjectModel>("Project", ProjectSchema);
