@@ -1,5 +1,17 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
 
+import {
+  MethodNotAllowedError,
+  NotFoundError,
+  NotImplimentedError,
+  ServerError,
+  UserInputError,
+} from "../errors/errors";
+import { AuthRequired } from "../middleware/authentication";
+import { Event } from "../models/database/event";
+import { Project, ProjectDocument } from "../models/database/project";
+import { Tenancy, TenancyDocument } from "../models/database/tenancy";
 import {
   CollaboratorsResponse,
   EventRequest,
@@ -10,78 +22,241 @@ import {
   ProjectRequest,
   ProjectResponse,
 } from "../models/types/projects";
+import { DecodeTokenFromHeader } from "../utils/token";
+import { createEvent, eventIDParam } from "../validation/events";
+import { createProject, projectIDParam, updateProject } from "../validation/projects";
+import { validate } from "../validation/validate";
 
-export const ProjectRouter = express.Router();
+export const ProjectEventRouter = express.Router();
 
-ProjectRouter.get("/Projects", (req: Request<never>, res: Response<[ProjectResponse]>) => {
-  console.log("Fetching all projects");
-  res.status(200).send();
-});
+ProjectEventRouter.post(
+  "",
+  AuthRequired,
+  validate(createProject),
+  async (req: Request<never, ProjectResponse, ProjectRequest>, res: Response<ProjectResponse>, next: NextFunction) => {
+    try {
+      const session = await mongoose.startSession();
+      const token = DecodeTokenFromHeader(req);
+      const tenancy = await Tenancy.findById(token.tenancyId);
 
-ProjectRouter.post(
-  "/Projects",
-  (req: Request<never, ProjectResponse, ProjectRequest>, res: Response<ProjectResponse>) => {
-    console.log("Creating a project");
-    res.status(201).send();
+      if (tenancy === null) {
+        return next(new ServerError("Tenancy is Not found"));
+      }
+
+      const project = await Project.NewProjectFromRequest(req.body, tenancy._id);
+      tenancy.projects.push(project._id);
+      session.startTransaction();
+      Promise.all([project.save(), tenancy.save()]);
+      await session.commitTransaction();
+      res.status(201).send(project.ToProjectResponse());
+    } catch (error) {
+      return next(error as Error);
+    }
   }
 );
 
-ProjectRouter.get("/Projects/:projectId", (req: Request<projectId>, res: Response<ProjectResponse>) => {
-  console.log("Fetching project with ID:", req.params.projectId);
-  res.status(200).send();
-});
+ProjectEventRouter.get(
+  "",
+  AuthRequired,
+  async (req: Request<never>, res: Response<ProjectResponse[]>, next: NextFunction) => {
+    try {
+      const token = DecodeTokenFromHeader(req);
+      const tenancy = await Tenancy.findById(token.tenancyId);
 
-ProjectRouter.patch(
-  "/Projects/:projectId",
-  (req: Request<projectId, ProjectDiffResponse, ProjectDiffRequest>, res: Response<ProjectDiffResponse>) => {
-    console.log("Updating project with ID:", req.params.projectId);
-    res.status(200).send();
+      if (tenancy === null) {
+        return next(new ServerError("Tenancy is Not found"));
+      }
+
+      const projects = await tenancy.ListProjects();
+      res.status(200).send(projects);
+    } catch (error) {
+      return next(error as Error);
+    }
   }
 );
 
-// Added routes for collaborators
-ProjectRouter.get(
-  "/projects/:projectID/Collaborators",
-  (req: Request<projectId>, res: Response<CollaboratorsResponse[]>) => {
-    console.log("Viewing current collaborators for project ID:", req.params.projectId);
-    res.status(200).send();
+ProjectEventRouter.get(
+  "/:projectId",
+  AuthRequired,
+  validate(projectIDParam),
+  async (req: Request<projectId>, res: Response<ProjectResponse>, next: NextFunction) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [project, _] = await FetchProjectFromRequestSafe(req, { ignoreActive: true });
+      res.status(200).send(project.ToProjectResponse());
+    } catch (error) {
+      return next(error as Error);
+    }
   }
 );
 
-ProjectRouter.post(
-  "/projects/:projectID/Collaborators",
-  (req: Request<projectId, undefined, { collaborator: string }>, res: Response) => {
-    console.log("Adding a collaborator to project ID:", req.params.projectId);
-    res.status(201).send();
-  }
-);
+ProjectEventRouter.patch(
+  "/:projectId",
+  AuthRequired,
+  validate(projectIDParam),
+  validate(updateProject),
+  async (
+    req: Request<projectId, ProjectDiffResponse, ProjectDiffRequest>,
+    res: Response<ProjectDiffResponse>,
+    next: NextFunction
+  ) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [project, _] = await FetchProjectFromRequestSafe(req, { ignoreActive: true });
 
-ProjectRouter.delete(
-  "/projects/:projectID/Collaborators/:collaboratorTenantId",
-  (req: Request<{ projectId: string; collaboratorTenantId: string }>, res: Response) => {
-    console.log("Removing a collaborator from project ID:", req.params.projectId);
-    res.status(200).send();
+      // check if the project is active, if project is not active and the request is not to activate it, return error
+      if (!project.IsActive() && req.body.projectStatus !== "ACTIVE") {
+        return next(new UserInputError("Project is not active"));
+      }
+
+      const diff = project.applyDiff(req.body);
+      await project.save();
+      res.status(200).send(diff);
+    } catch (error) {
+      return next(error as Error);
+    }
   }
 );
 
 // Added routes for events
-ProjectRouter.get("/Projects/:projectId/events", (req: Request<projectId>, res: Response<EventResponse[]>) => {
-  console.log("Viewing all events for project ID:", req.params.projectId);
-  res.status(200).send();
-});
-
-ProjectRouter.post(
-  "/Projects/:projectId/events",
-  (req: Request<projectId, EventResponse, EventRequest>, res: Response<EventResponse>) => {
-    console.log("Creating an event for project ID:", req.params.projectId);
-    res.status(201).send();
+ProjectEventRouter.get(
+  "/:projectId/events",
+  AuthRequired,
+  validate(projectIDParam),
+  async (req: Request<projectId>, res: Response<EventResponse[]>, next: NextFunction) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [project, _] = await FetchProjectFromRequestSafe(req, { ignoreActive: true });
+      const events = await project.ListallEvents();
+      res.status(200).send(events);
+    } catch (error) {
+      return next(error as Error);
+    }
   }
 );
 
-ProjectRouter.get(
-  "/Projects/:projectId/events/:eventId",
-  (req: Request<{ projectId: string; eventId: string }>, res: Response<EventResponse>) => {
-    console.log("Viewing single event with ID:", req.params.eventId, "for project ID:", req.params.projectId);
-    res.status(200).send();
+ProjectEventRouter.post(
+  "/:projectId/events",
+  AuthRequired,
+  validate(projectIDParam),
+  validate(createEvent),
+  async (req: Request<projectId, EventResponse, EventRequest>, res: Response<EventResponse>, next: NextFunction) => {
+    try {
+      const session = await mongoose.startSession();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [project, _] = await FetchProjectFromRequestSafe(req);
+      const event = await Event.NewEventFromRequest(req.body, project._id);
+      project.events.push(event._id);
+
+      session.startTransaction();
+      Promise.all([event.save(), project.save()]);
+      await session.commitTransaction();
+
+      return res.status(201).send(event.ToEventResponse());
+    } catch (error) {
+      return next(error as Error);
+    }
   }
 );
+
+// Add 405 error for deleting projects
+ProjectEventRouter.delete(
+  "/:projectId",
+  AuthRequired,
+  validate(projectIDParam),
+  (req: Request<projectId>, res: Response, next: NextFunction) =>
+    next(new MethodNotAllowedError("Deleting a project Not allowed"))
+);
+
+// Add 405 error for deleting events
+ProjectEventRouter.delete(
+  "/:projectId/events/:eventId",
+  AuthRequired,
+  validate(projectIDParam),
+  validate(eventIDParam),
+  (req: Request<{ projectId: string; eventId: string }>, res: Response, next: NextFunction) =>
+    next(new MethodNotAllowedError("Deleting an event Not allowed"))
+);
+
+ProjectEventRouter.get(
+  "/:projectId/events/:eventId",
+  AuthRequired,
+  validate(projectIDParam),
+  validate(eventIDParam),
+  async (req: Request<{ projectId: string; eventId: string }>, res: Response<EventResponse>, next: NextFunction) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [project, _] = await FetchProjectFromRequestSafe(req);
+      const event = await Event.findById(req.params.eventId);
+      if (event === null) {
+        return next(new NotFoundError("Event not found"));
+      }
+      if (event.IspartOfProject(project._id)) {
+        return res.status(200).send(event.ToEventResponse());
+      } else {
+        return next(new NotFoundError("Event not found"));
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Added routes for collaborators
+ProjectEventRouter.get(
+  "/:projectID/Collaborators",
+  AuthRequired,
+  (req: Request<projectId>, res: Response<CollaboratorsResponse[]>, next) => {
+    next(new NotImplimentedError("Viewing current collaborators for project is not implemented"));
+  }
+);
+
+ProjectEventRouter.post(
+  "/:projectID/Collaborators",
+  AuthRequired,
+  validate(projectIDParam),
+  (req: Request<projectId, undefined, { collaborator: string }>, res: Response, next) => {
+    next(new NotImplimentedError("adding collaborators to a project is not implemented"));
+  }
+);
+
+ProjectEventRouter.delete(
+  "/:projectID/Collaborators/:collaboratorTenantId",
+  AuthRequired,
+  validate(projectIDParam),
+  (req: Request<{ projectId: string; collaboratorTenantId: string }>, res: Response, next) => {
+    next(new NotImplimentedError("removing collaborators to a project is not implemented"));
+  }
+);
+
+type safeFetchOpts = {
+  ignoreActive: boolean;
+};
+
+async function FetchProjectFromRequestSafe(
+  req: Request,
+  opts: safeFetchOpts = { ignoreActive: false }
+): Promise<[ProjectDocument, TenancyDocument]> {
+  const token = DecodeTokenFromHeader(req);
+  const tenancy = await Tenancy.findById(token.tenancyId);
+
+  if (tenancy === null) {
+    throw new ServerError("Tenancy is Not found");
+  }
+
+  const presentInTenancy = await tenancy.AssertProjectInTenancy(new mongoose.Types.ObjectId(req.params.projectId));
+  if (!presentInTenancy) {
+    throw new NotFoundError("Project not found");
+  }
+
+  const project = await Project.findById(req.params.projectId);
+  if (project === null) {
+    throw new ServerError("Project Reference Found in tenancy record but not found in the project collection");
+  }
+
+  if (!project.IsActive() && !opts.ignoreActive) {
+    throw new UserInputError("Project is not active");
+  }
+
+  return [project, tenancy];
+}

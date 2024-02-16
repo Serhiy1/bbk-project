@@ -1,5 +1,8 @@
 type: object
 properties:
+  projectId:
+    type: string
+    format: uuid
   eventId:
     type: string
     format: uuid
@@ -18,3 +21,9 @@ properties:
     type: array
     items:
       $ref: '../Request/AttachmentRequest.yaml'
+required:
+  - projectId
+  - eventId
+  - eventDate
+  - eventName
+  - eventType

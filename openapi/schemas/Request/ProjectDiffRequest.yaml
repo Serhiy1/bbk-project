@@ -4,16 +4,18 @@ properties:
     type: string
     maxLength: 64
     pattern: '^\S(.*\S)?$'
+  projectDescription:
+    type: string
+    maxLength: 1024
+    pattern: '^\S(.*\S)?$'
+  projectStatus:
+    type: string
+    enum:
+      - ACTIVE
+      - INACTIVE
   customMetaData:
     type: object
     additionalProperties:
-      type: object
-      properties:
-        old:
-          type: string
-          maxLength: 1024
-          pattern: '^\S(.*\S)?$'
-        new:
-          type: string
-          maxLength: 1024
-          pattern: '^\S(.*\S)?$'
+      type: string
+      maxLength: 1024
+      pattern: '^\S(.*\S)?$'

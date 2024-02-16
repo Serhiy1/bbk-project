@@ -12,3 +12,20 @@ properties:
     type: object
     additionalProperties:
       type: string
+  projectDescription:
+    type: string
+    maxLength: 1024
+    pattern: '^\S(.*\S)?$'
+  projectStatus:
+    type: string
+    enum:
+      - ACTIVE
+      - INACTIVE
+required:
+- projectId
+- startedDate
+- projectName
+- projectStatus
+- ProjectResponse
+
+  

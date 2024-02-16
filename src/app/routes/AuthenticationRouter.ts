@@ -1,12 +1,10 @@
 import bcrypt from "bcrypt";
 import express, { NextFunction, Request, Response } from "express";
-import mongoose from "mongoose";
 
 import { NotFoundError, ResourceInUseError, ServerError, UnAuthenticatedError } from "../errors/errors";
-import { AuthRequired, login, signup } from "../middleware/authentication";
-import { validate } from "../middleware/validate";
-import { newTenancy } from "../models/database/tenancy";
-import { newUser, User } from "../models/database/user";
+import { AuthRequired } from "../middleware/authentication";
+import { Tenancy } from "../models/database/tenancy";
+import { User } from "../models/database/user";
 import {
   LoginRequest,
   LoginResponse,
@@ -14,43 +12,33 @@ import {
   SignupResponse,
   UserResponse,
 } from "../models/types/authentications";
-import { DecodeToken, NewToken } from "../utils/token";
+import { DecodeTokenFromHeader, NewToken } from "../utils/token";
+import { login, signup } from "../validation/authentication";
+import { validate } from "../validation/validate";
 
 export const authenticationRouter = express.Router();
 
 authenticationRouter.post(
   "/signup",
-  validate(signup()),
+  validate(signup),
   async (req: Request<never, SignupResponse, SignupRequest>, res: Response<SignupResponse>, next: NextFunction) => {
-    console.debug(`processing signup request ${req.body}`);
     try {
       const email = req.body.email;
       const userName = req.body.username;
       const password = req.body.password;
 
-      const existingEmail = await User.findOne({ email });
-      if (existingEmail) {
+      if (await User.AlreadyExists(email)) {
         return next(new ResourceInUseError("Email already in use"));
       }
 
       const passwordHash = bcrypt.hashSync(password, 10);
-
-      const tenancy = newTenancy({
-        _id: new mongoose.Types.ObjectId(),
-      });
-
-      const user = newUser({
-        _id: new mongoose.Types.ObjectId(),
-        email: email,
-        userName: userName,
-        passwordHash: passwordHash,
-        tenancyId: tenancy.id,
-      });
+      const tenancy = await Tenancy.NewTenancy();
+      const user = await User.NewUser({ userName, email, passwordHash, tenancyId: tenancy._id });
 
       await tenancy.save();
       await user.save();
 
-      const token = NewToken({ email: email, _id: user.id, userName: userName, tenancyId: user.tenancyId });
+      const token = NewToken(user.toTokenInfo());
       res.status(201).send({ token: token, tenantID: tenancy.id });
     } catch (error) {
       next(new ServerError((error as Error).message));
@@ -60,7 +48,7 @@ authenticationRouter.post(
 
 authenticationRouter.post(
   "/login",
-  validate(login()),
+  validate(login),
   async (req: Request<never, LoginResponse, LoginRequest>, res: Response<LoginResponse>, next: NextFunction) => {
     try {
       const email = req.body.email;
@@ -77,12 +65,7 @@ authenticationRouter.post(
         return next(new UnAuthenticatedError("Auth Failed - Password does not match"));
       }
 
-      const token = NewToken({
-        email: email,
-        _id: existingUser.id,
-        userName: existingUser.userName,
-        tenancyId: existingUser.tenancyId,
-      });
+      const token = NewToken(existingUser.toTokenInfo());
 
       res.status(200).send({ token: token });
     } catch (error) {
@@ -95,20 +78,17 @@ authenticationRouter.get(
   "/whoami",
   AuthRequired,
   async (req: Request<never, UserResponse>, res: Response<UserResponse>, next: NextFunction) => {
-    const authHeader = req.headers.authorization as string;
-    const token = authHeader.split(" ")[1];
+    try {
+      const decodedInfo = DecodeTokenFromHeader(req);
+      const user = await User.findById(decodedInfo.UserId);
 
-    const decodedInfo = DecodeToken(token);
-    const user = await User.findOne({ _id: decodedInfo._id });
-
-    if (user == null) {
-      next(new NotFoundError("user not found"));
-    } else {
-      res.status(200).send({
-        email: user.email,
-        tenantID: `${user.tenancyId}`,
-        username: user.userName,
-      });
+      if (user == null) {
+        next(new NotFoundError("user not found"));
+      } else {
+        res.status(200).send(user.toUserResponse());
+      }
+    } catch (error) {
+      next(new ServerError((error as Error).message));
     }
   }
 );

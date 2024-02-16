@@ -7,6 +7,24 @@ properties:
         type: string
       new:
         type: string
+  projectDescription:
+    type: object
+    properties:
+      old:
+        type: string
+      new:
+        type: string
+  projectStatus:
+    type: object
+    properties:
+      old:
+        enum:
+          - ACTIVE
+          - INACTIVE
+      new:
+        enum:
+          - ACTIVE
+          - INACTIVE
   projectCreator:
     type: string
     format: uuid      

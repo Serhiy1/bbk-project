@@ -508,17 +508,23 @@ export interface components {
             }[];
         };
         ProjectResponse: {
-            projectName?: string;
+            projectName: string;
             /** Format: uuid */
-            projectId?: string;
+            projectId: string;
             /** Format: date */
-            startedDate?: string;
+            startedDate: string;
             customMetaData?: {
                 [key: string]: string | undefined;
             };
+            projectDescription?: string;
+            /** @enum {string} */
+            projectStatus: "ACTIVE" | "INACTIVE";
         };
         ProjectRequest: {
             projectName: string;
+            projectDescription: string;
+            /** @enum {string} */
+            projectStatus?: "ACTIVE" | "INACTIVE";
             customMetaData?: {
                 [key: string]: string | undefined;
             };
@@ -527,6 +533,16 @@ export interface components {
             projectName?: {
                 old?: string;
                 new?: string;
+            };
+            projectDescription?: {
+                old?: string;
+                new?: string;
+            };
+            projectStatus?: {
+                /** @enum {unknown} */
+                old?: "ACTIVE" | "INACTIVE";
+                /** @enum {unknown} */
+                new?: "ACTIVE" | "INACTIVE";
             };
             /** Format: uuid */
             projectCreator?: string;
@@ -544,11 +560,13 @@ export interface components {
         };
         EventResponse: {
             /** Format: uuid */
-            eventId?: string;
+            projectId: string;
+            /** Format: uuid */
+            eventId: string;
             /** Format: date */
-            eventDate?: string;
-            eventName?: string;
-            eventType?: string;
+            eventDate: string;
+            eventName: string;
+            eventType: string;
             customMetaData?: {
                 [key: string]: string | undefined;
             };
@@ -556,11 +574,11 @@ export interface components {
         };
         ProjectDiffRequest: {
             projectName?: string;
+            projectDescription?: string;
+            /** @enum {string} */
+            projectStatus?: "ACTIVE" | "INACTIVE";
             customMetaData?: {
-                [key: string]: {
-                    old?: string;
-                    new?: string;
-                } | undefined;
+                [key: string]: string | undefined;
             };
         };
         EventRequest: {
