@@ -1,4 +1,5 @@
 import { body, param } from "express-validator";
+import mongoose from "mongoose";
 
 export const createEvent = [
   body("eventName", "Event Name is required").not().isEmpty().trim().escape(),
@@ -17,4 +18,13 @@ export const createEvent = [
   body("attachments", "Attachments should be an array of AttachmentRequest").optional().isArray(),
 ];
 
-export const eventIDParam = [param("eventId", "event ID is required").not().isEmpty().isUUID().trim().escape()];
+export const eventIDParam = [
+  param("eventId", "A valid event ID is required")
+    .not()
+    .isEmpty()
+    .trim()
+    .escape()
+    .custom((value) => {
+      return mongoose.Types.ObjectId.isValid(value);
+    }),
+];

@@ -22,7 +22,6 @@ authenticationRouter.post(
   "/signup",
   validate(signup),
   async (req: Request<never, SignupResponse, SignupRequest>, res: Response<SignupResponse>, next: NextFunction) => {
-    console.debug(`processing signup request ${req.body}`);
     try {
       const email = req.body.email;
       const userName = req.body.username;

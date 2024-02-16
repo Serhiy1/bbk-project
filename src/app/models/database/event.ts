@@ -18,6 +18,7 @@ interface IEvent extends IEventArgs {
 
 interface IEventMethods {
   ToEventResponse: () => EventResponse;
+  IspartOfProject: (projectId: mongoose.Types.ObjectId) => boolean;
 }
 
 interface IEvenntQueryHelpers {}
@@ -67,6 +68,10 @@ EventSchema.method("ToEventResponse", function ToEventResponse(): EventResponse 
     customMetaData: this.customMetaData,
   };
   return obj;
+});
+
+EventSchema.method("IspartOfProject", function IspartOfProject(projectId: mongoose.Types.ObjectId): boolean {
+  return this.projectId.equals(projectId);
 });
 
 export const Event = model<IEvent, IEventModel>("Event", EventSchema);

@@ -154,30 +154,29 @@ test("project Update CustomMetaData via diff", async () => {
   // create random project
   const projectinfo = CreateRandomProject();
   const tenancyId = new mongoose.Types.ObjectId();
-  
+
   const project = await Project.NewProjectFromRequest(projectinfo, tenancyId);
   await project.save();
-  
+
   // create diff that only updates the customMetaData
   // loop over the existing customMetaData and update the values
-  const UpdatedCustomMetaData : Record<string, string> = {};
+  const UpdatedCustomMetaData: Record<string, string> = {};
   for (const key in projectinfo.customMetaData) {
     UpdatedCustomMetaData[key] = faker.lorem.word();
   }
-  
+
   const diff = { customMetaData: UpdatedCustomMetaData };
   const diffresp = project.applyDiff(diff);
-  
+
   // check that the diff response has the correct properties
   expect(diffresp).toHaveProperty("customMetaData");
   project.save();
-  
+
   const projectFromDB = await Project.findById(project._id);
   const customMetaDataFromDB = (projectFromDB as ProjectDocument).ToProjectResponse().customMetaData;
-  
-  // check that the customMetaData has been updated  
+
+  // check that the customMetaData has been updated
   expect(JSON.stringify(customMetaDataFromDB)).toEqual(JSON.stringify(UpdatedCustomMetaData));
-  
 });
 /* Closing database connection at the end of the suite. */
 afterAll(async () => {

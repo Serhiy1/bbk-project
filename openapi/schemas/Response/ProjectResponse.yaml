@@ -21,4 +21,11 @@ properties:
     enum:
       - ACTIVE
       - INACTIVE
+required:
+- projectId
+- startedDate
+- projectName
+- projectStatus
+- ProjectResponse
+
   

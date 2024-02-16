@@ -1,6 +1,6 @@
 /* tests the user Model */
 
-import { beforeAll, expect, test } from "@jest/globals";
+import { afterAll, beforeAll, expect, test } from "@jest/globals";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 
@@ -78,4 +78,8 @@ test("test toUserResponse Method", async () => {
   expect(userResponse).toHaveProperty("tenantID", user.tenancyId.toString());
   expect(userResponse).toHaveProperty("username", user.userName);
   expect(userResponse).toHaveProperty("email", user.email);
+});
+
+afterAll(async () => {
+  await mongo.stop();
 });

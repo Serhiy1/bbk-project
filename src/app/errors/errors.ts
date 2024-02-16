@@ -42,3 +42,9 @@ export class NotImplimentedError extends HttpError {
     super(501, message);
   }
 }
+
+export class MethodNotAllowedError extends HttpError {
+  constructor(message: string) {
+    super(405, message);
+  }
+}

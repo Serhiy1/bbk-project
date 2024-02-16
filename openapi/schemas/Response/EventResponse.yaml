@@ -21,3 +21,9 @@ properties:
     type: array
     items:
       $ref: '../Request/AttachmentRequest.yaml'
+required:
+  - projectId
+  - eventId
+  - eventDate
+  - eventName
+  - eventType

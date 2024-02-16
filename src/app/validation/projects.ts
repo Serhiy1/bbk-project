@@ -1,4 +1,5 @@
 import { body, param } from "express-validator";
+import mongoose from "mongoose";
 
 export const createProject = [
   body("projectName", "Project Name is required").not().isEmpty().trim().escape(),
@@ -9,7 +10,8 @@ export const createProject = [
     .isObject()
     .custom((value) => {
       for (const key in value) {
-        if (typeof value[key] !== "string") {
+        // if key or value is not a string, throw an error
+        if (typeof value[key] !== "string" || typeof key !== "string") {
           throw new Error("Custom Meta should be a string to string map");
         }
       }
@@ -17,7 +19,16 @@ export const createProject = [
     }),
 ];
 
-export const projectIDParam = [param("projectId", "Project ID is required").not().isEmpty().isUUID().trim().escape()];
+export const projectIDParam = [
+  param("projectId", "A valid project ID is required")
+    .not()
+    .isEmpty()
+    .trim()
+    .escape()
+    .custom((value) => {
+      return mongoose.Types.ObjectId.isValid(value);
+    }),
+];
 
 export const updateProject = [
   body("projectName", "Project Name is required").optional().trim().escape(),
@@ -28,7 +39,8 @@ export const updateProject = [
     .isObject()
     .custom((value) => {
       for (const key in value) {
-        if (typeof value[key] !== "string") {
+        // if key or value is not a string, throw an error
+        if (typeof value[key] !== "string" || typeof key !== "string") {
           throw new Error("Custom Meta should be a string to string map");
         }
       }

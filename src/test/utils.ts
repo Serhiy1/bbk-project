@@ -4,7 +4,7 @@ import { Express } from "express";
 import request from "supertest";
 
 import { SignupRequest } from "../app/models/types/authentications";
-import { ProjectDiffRequest, ProjectRequest } from "../app/models/types/projects";
+import { ProjectDiffRequest, ProjectRequest, ProjectResponse } from "../app/models/types/projects";
 import { EventRequest } from "../app/models/types/projects";
 import { UserTokenInfo } from "../app/utils/token";
 
@@ -24,7 +24,7 @@ export class Person {
   }
 }
 
-export async function SignupPerson(person: Person, app: Express) {
+export async function SignupPerson(person: Person, app: Express): Promise<string> {
   const signup_info: SignupRequest = {
     email: person.email,
     username: person.userName,
@@ -68,5 +68,21 @@ export function CreateRandomDiff(): ProjectDiffRequest {
   return {
     projectName: faker.lorem.words(3),
     projectDescription: faker.lorem.sentence(),
+  };
+}
+
+// create a a diff that overrides all the passed in properties
+export function CreateOverrideDiff(project: ProjectResponse): ProjectDiffRequest {
+  // update name, description and customMetaData
+  // loop over the existing customMetaData and update the values
+  const UpdatedCustomMetaData: Record<string, string> = {};
+  for (const key in project.customMetaData) {
+    UpdatedCustomMetaData[key] = faker.lorem.word();
+  }
+
+  return {
+    projectName: faker.lorem.words(3),
+    projectDescription: faker.lorem.sentence(),
+    customMetaData: UpdatedCustomMetaData,
   };
 }
