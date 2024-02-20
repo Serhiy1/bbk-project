@@ -8,18 +8,14 @@ properties:
   status:
     type: string
     enum:
-    - PENDING
-    - ACTIVE
+      - PENDING
+      - ACTIVE
   projects:
     type: array
     items:
-      type: object
-      properties:
-        projectName:
-          type: string
-        projectID:
-          type: string
-          format: uuid
-      required:
-      - projectName
-      - projectID
+      $ref: './collaboratorsProject.yaml'
+required:
+  - friendlyName
+  - tenantID
+  - status
+  - projects

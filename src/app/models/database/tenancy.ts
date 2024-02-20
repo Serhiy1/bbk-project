@@ -1,18 +1,27 @@
 import mongoose, { HydratedDocument, Model, model, Schema } from "mongoose";
 
-import { ProjectResponse } from "../types/projects";
+import { UserInputError } from "../../errors/errors";
+import { collaboratorsRequest, collaboratorsResponse } from "../types/collaborators";
+import { CollaboratorsResponse, ProjectResponse } from "../types/projects";
 import { Project } from "./project";
+import { RelationshipManager } from "./relationshipManager";
 
 // Declare the attributes of the model
 interface ITenancy {
   _id: mongoose.Types.ObjectId;
   projects: mongoose.Types.ObjectId[];
+  relationships: mongoose.Types.ObjectId[];
+  sharedProjects: mongoose.Types.ObjectId[];
 }
 
 // declare the methods of the model
 interface ITenancyMethods {
   ListProjects: () => Promise<ProjectResponse[]>;
   AssertProjectInTenancy: (projectId: mongoose.Types.ObjectId) => Promise<boolean>;
+  ListOpenInvites: () => Promise<collaboratorsResponse[]>;
+  ListPendingInvites: () => Promise<collaboratorsResponse[]>;
+  AddCollaborator: (collaboratorTenancy: mongoose.Types.ObjectId) => Promise<collaboratorsResponse | null>;
+  RemoveCollaborator: (collaboratorTenancy: mongoose.Types.ObjectId) => Promise<void>;
 }
 
 // Declare the byEmail Query helper
@@ -53,6 +62,119 @@ TenancySchema.method("ListProjects", async function ListProjects(): Promise<Proj
 
   return projectResponses;
 });
+
+/* Lists the invites the tenancy has sent but not yet accepted */
+TenancySchema.method("ListPendingInvites", async function ListPendingInvites(): Promise<collaboratorsResponse[]> {
+  const pendingInvites: collaboratorsResponse[] = [];
+
+  for (const collaboratorID of this.relationships) {
+    const collaborator = await RelationshipManager.findById(collaboratorID);
+
+    if (collaborator == null) {
+      continue;
+    }
+
+    // if the status is not pending, skip
+    if (collaborator.status() !== "PENDING") {
+      continue;
+    }
+
+    // if the current tenant has not accepted the invite, skip
+    if (collaborator.collaberatorsInfo.get(this._id)?.accepted === true) {
+      continue;
+    }
+
+    pendingInvites.push(collaborator.toCollaboratorResponse(this._id));
+  }
+
+  return pendingInvites;
+});
+
+/* Lists the invites the tenancy has received but not yet accepted */
+TenancySchema.method("ListOpenInvites", async function ListOpenInvites(): Promise<collaboratorsResponse[]> {
+  const openInvites: collaboratorsResponse[] = [];
+
+  for (const collaboratorID of this.relationships) {
+    const collaborator = await RelationshipManager.findById(collaboratorID);
+
+    if (collaborator == null) {
+      continue;
+    }
+
+    // if the status is not pending, skip
+    if (collaborator.status() !== "PENDING") {
+      continue;
+    }
+
+    // if the current tenant has not accepted the invite, skip
+    if (collaborator.collaberatorsInfo.get(this._id)?.accepted === false) {
+      openInvites.push(collaborator.toCollaboratorResponse(this._id));
+    }
+  }
+
+  return openInvites;
+});
+
+TenancySchema.method(
+  "AddCollaborator",
+  async function AddCollaborator(collaberatorRequest: collaboratorsRequest): Promise<CollaboratorsResponse> {
+    const otherTenancy = await Tenancy.findById(collaberatorRequest.tenantID);
+
+    if (!otherTenancy) {
+      throw new UserInputError("collaberator Tenant does not exist");
+    }
+
+    // check if there is an open invite
+    let relationship = await RelationshipManager.findByCollaborators(
+      this._id,
+      new mongoose.Types.ObjectId(collaberatorRequest.tenantID)
+    );
+
+    if (relationship == null) {
+      // if there is no open invite, create a new one
+      relationship = await RelationshipManager.newRelationship(this._id, collaberatorRequest);
+    } else {
+      // if there is an open invite, accept it
+      relationship.acceptInvite(collaberatorRequest);
+    }
+
+    const session = await mongoose.startSession();
+
+    try {
+      session.startTransaction();
+      this.relationships.push(relationship._id);
+      otherTenancy.relationships.push(relationship._id);
+      await relationship.save();
+      await this.save();
+      await session.commitTransaction();
+    } catch (error) {
+      session.abortTransaction();
+      throw error;
+    }
+
+    return relationship.toCollaboratorResponse(this._id);
+  }
+);
+
+TenancySchema.method(
+  "removeCollaborator",
+  async function RemoveCollaborator(collaboratorTenancy: mongoose.Types.ObjectId) {
+    const relationship = await RelationshipManager.findByCollaborators(this._id, collaboratorTenancy);
+
+    if (relationship == null) {
+      throw new UserInputError("Collaborator does not exist");
+    }
+
+    relationship.collaberatorsInfo.set(this._id, {
+      tenantID: this._id,
+      friendlyName: "",
+      accepted: false,
+      projects: [],
+    });
+
+    await relationship.save();
+  }
+);
 
 TenancySchema.method(
   "AssertProjectInTenancy",

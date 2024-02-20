@@ -1,12 +1,12 @@
 import express, { Request, Response } from "express";
 
-// Import the types you've defined elsewhere
-import { CollaboratorsRequest, CollaboratorsResponse } from "../models/types/collaborators"; // Update the import path as needed
+import { AuthRequired } from "../middleware/authentication";
+import { collaboratorsRequest, collaboratorsResponse } from "../models/types/collaborators";
 
 export const collaboratorsRouter = express.Router();
 
 // Viewing all collaborators
-collaboratorsRouter.get("/collaborators", (req: Request, res: Response<CollaboratorsResponse[]>) => {
+collaboratorsRouter.get("/collaborators", AuthRequired, (req: Request, res: Response<collaboratorsResponse[]>) => {
   console.log("Fetching all collaborators");
   res.status(200).send();
 });
@@ -14,7 +14,8 @@ collaboratorsRouter.get("/collaborators", (req: Request, res: Response<Collabora
 // Adding a collaborator
 collaboratorsRouter.post(
   "/collaborators",
-  (req: Request<never, CollaboratorsResponse, CollaboratorsRequest>, res: Response<CollaboratorsResponse>) => {
+  AuthRequired,
+  (req: Request<never, collaboratorsResponse, collaboratorsRequest>, res: Response<collaboratorsResponse>) => {
     console.log("Adding a collaborator");
     res.status(201).send(); // Assuming you'd replace this with actual collaborator addition logic and response
   }
@@ -23,7 +24,8 @@ collaboratorsRouter.post(
 // Viewing a single collaborator
 collaboratorsRouter.get(
   "/collaborators/:collaboratorTenantUuid",
-  (req: Request<{ collaboratorTenantUuid: string }>, res: Response<CollaboratorsResponse>) => {
+  AuthRequired,
+  (req: Request<{ collaboratorTenantUuid: string }>, res: Response<collaboratorsResponse>) => {
     console.log("Fetching collaborator with UUID:", req.params.collaboratorTenantUuid);
     res.status(200).send();
   }
@@ -32,6 +34,7 @@ collaboratorsRouter.get(
 // Removing a collaborator
 collaboratorsRouter.delete(
   "/collaborators/:collaboratorTenantUuid",
+  AuthRequired,
   (req: Request<{ collaboratorTenantUuid: string }>, res: Response) => {
     console.log("Removing collaborator with UUID:", req.params.collaboratorTenantUuid);
     res.status(200).send();

@@ -271,14 +271,14 @@ describe("Project Input Validation", () => {
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe("Project Name is required");
   });
-  
+
   test("patching an inactive project should respond with 400", async () => {
     const projectinfo = CreateRandomProject();
     const person = new Person();
     const token = await SignupPerson(person, app);
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
-    
+
     const diff = {
       projectStatus: "INACTIVE",
     };
@@ -287,7 +287,7 @@ describe("Project Input Validation", () => {
       .send(diff)
       .set("Authorization", `Bearer ${token}`);
     expect(res2.statusCode).toBe(200);
-    
+
     // Try Patching the project without setting it to ACTIVE
     const diff2 = {
       projectDescription: "This is a project",
@@ -296,11 +296,9 @@ describe("Project Input Validation", () => {
       .patch(`/Projects/${res.body.projectId}`)
       .send(diff2)
       .set("Authorization", `Bearer ${token}`);
-      
+
     expect(res3.statusCode).toBe(400);
-    
-  })
-    
+  });
 
   test("Create a new project with missing projectDescription should respond with 400", async () => {
     const projectinfo = {
@@ -413,49 +411,48 @@ describe("Project Input Validation", () => {
   });
 
   //      Test 12 - Getting a event from a different tenant should respond with 404
-  
+
   test("Get event from a different project on same tenancy should respond with 404", async () => {
     const person = new Person();
     const token = await SignupPerson(person, app);
     const projectinfo = CreateRandomProject();
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
-    
+
     // create event on project
     const eventinfo = CreateRandomEvent();
     const res2 = await request(app)
       .post(`/Projects/${res.body.projectId}/events`)
       .send(eventinfo)
       .set("Authorization", `Bearer ${token}`);
-      expect(res2.statusCode).toBe(201);
+    expect(res2.statusCode).toBe(201);
 
     // Create second project
     const projectinfo2 = CreateRandomProject();
     const res3 = await request(app).post("/projects").send(projectinfo2).set("Authorization", `Bearer ${token}`);
     expect(res3.statusCode).toBe(201);
-    
+
     // get event from second project
     const res4 = await request(app)
       .get(`/Projects/${res3.body.projectId}/events/${res2.body.eventId}`)
       .set("Authorization", `Bearer ${token}`);
     expect(res4.statusCode).toBe(404);
-   
-  })
-  
+  });
+
   test("Get event from a different tenant should respond with 404", async () => {
     const person = new Person();
     const token = await SignupPerson(person, app);
     const projectinfo = CreateRandomProject();
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
-    
+
     // create event on project
     const eventinfo = CreateRandomEvent();
     const res2 = await request(app)
       .post(`/Projects/${res.body.projectId}/events`)
       .send(eventinfo)
       .set("Authorization", `Bearer ${token}`);
-      expect(res2.statusCode).toBe(201);
+    expect(res2.statusCode).toBe(201);
 
     const person2 = new Person();
     const token2 = await SignupPerson(person2, app);
@@ -464,16 +461,12 @@ describe("Project Input Validation", () => {
       .set("Authorization", `Bearer ${token2}`);
     expect(res3.statusCode).toBe(404);
   });
-    
-    
-  
 });
 // Desacribe Authentication tests
 describe("Authentication Tests", () => {
-  
   let realEventID: string;
   let realProjectID: string;
-  
+
   beforeAll(async () => {
     const person = new Person();
     const token = await SignupPerson(person, app);
@@ -481,53 +474,44 @@ describe("Authentication Tests", () => {
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
     realProjectID = res.body.projectId;
-    
+
     const eventinfo = CreateRandomEvent();
     const res2 = await request(app)
       .post(`/Projects/${realProjectID}/events`)
       .send(eventinfo)
       .set("Authorization", `Bearer ${token}`);
-    
+
     realEventID = res2.body.eventId;
-  })
-  
+  });
+
   test("Create a new project without authentication should respond with 403", async () => {
     const projectinfo = CreateRandomProject();
     const res = await request(app).post("/projects").send(projectinfo);
     expect(res.statusCode).toBe(403);
-  })
+  });
 
   test("Create a new event without authentication should respond with 403", async () => {
     const eventinfo = CreateRandomEvent();
-    const res = await request(app)
-      .post(`/Projects/${realProjectID}/events`)
-      .send(eventinfo);
+    const res = await request(app).post(`/Projects/${realProjectID}/events`).send(eventinfo);
     expect(res.statusCode).toBe(403);
-  })
+  });
 
   test("Update a project without authentication should respond with 403", async () => {
     const diff: ProjectDiffRequest = { projectStatus: "INACTIVE" };
-    const res = await request(app)
-      .patch(`/Projects/${realProjectID}`)
-      .send(diff);
+    const res = await request(app).patch(`/Projects/${realProjectID}`).send(diff);
     expect(res.statusCode).toBe(403);
-  })
-  
+  });
+
   test("Fetch all projects without authentication should respond with 403", async () => {
     const res = await request(app).get("/projects");
     expect(res.statusCode).toBe(403);
-  })
-  
+  });
+
   test("Get a event without authentication should respond with 403", async () => {
-    const res = await request(app)
-      .get(`/Projects/${realProjectID}/events/${realEventID}`);
+    const res = await request(app).get(`/Projects/${realProjectID}/events/${realEventID}`);
     expect(res.statusCode).toBe(403);
-  })
-  
-})
-
-
-
+  });
+});
 
 afterAll(async () => {
   await mongo.stop();

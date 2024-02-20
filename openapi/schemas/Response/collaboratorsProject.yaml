@@ -1,0 +1,10 @@
+type: object
+properties:
+  projectName:
+    type: string
+  projectID:
+    type: string
+    format: uuid
+required:
+  - projectName
+  - projectID
