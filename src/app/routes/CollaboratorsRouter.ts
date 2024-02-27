@@ -1,42 +1,147 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
 
+import { ServerError } from "../errors/errors";
 import { AuthRequired } from "../middleware/authentication";
+import { Tenancy } from "../models/database/tenancy";
 import { collaboratorsRequest, collaboratorsResponse } from "../models/types/collaborators";
+import { DecodeTokenFromHeader } from "../utils/token";
+import { AddCollaborator, collaberatorIDParam } from "../validation/collaborators";
+import { validate } from "../validation/validate";
 
 export const collaboratorsRouter = express.Router();
 
 // Viewing all collaborators
-collaboratorsRouter.get("/collaborators", AuthRequired, (req: Request, res: Response<collaboratorsResponse[]>) => {
-  console.log("Fetching all collaborators");
-  res.status(200).send();
-});
+collaboratorsRouter.get(
+  "/",
+  AuthRequired,
+  async (req: Request, res: Response<collaboratorsResponse[]>, next: NextFunction) => {
+    try {
+      const token = DecodeTokenFromHeader(req);
+      const tenancy = await Tenancy.findById(token.tenancyId);
+
+      if (tenancy === null) {
+        return next(new ServerError("Tenancy is Not found"));
+      }
+
+      const collaberatorResp = await tenancy.listActiveCollaborators();
+
+      return res.status(200).send(collaberatorResp);
+    } catch (error) {
+      return next(error as Error);
+    }
+  }
+);
 
 // Adding a collaborator
 collaboratorsRouter.post(
-  "/collaborators",
+  "/",
   AuthRequired,
-  (req: Request<never, collaboratorsResponse, collaboratorsRequest>, res: Response<collaboratorsResponse>) => {
-    console.log("Adding a collaborator");
-    res.status(201).send(); // Assuming you'd replace this with actual collaborator addition logic and response
+  validate(AddCollaborator),
+  async (
+    req: Request<never, collaboratorsResponse, collaboratorsRequest>,
+    res: Response<collaboratorsResponse>,
+    next: NextFunction
+  ) => {
+    try {
+      const token = DecodeTokenFromHeader(req);
+      const tenancy = await Tenancy.findById(token.tenancyId);
+
+      if (tenancy === null) {
+        return next(new ServerError("Tenancy is Not found"));
+      }
+
+      const collaberatorResp = await tenancy.AddCollaborator(req.body);
+      res.status(201).send(collaberatorResp);
+    } catch (error) {
+      return next(error as Error);
+    }
+  }
+);
+
+// open invites
+collaboratorsRouter.get(
+  "/open",
+  AuthRequired,
+  async (req: Request, res: Response<collaboratorsResponse[]>, next: NextFunction) => {
+    try {
+      const token = DecodeTokenFromHeader(req);
+      const tenancy = await Tenancy.findById(token.tenancyId);
+
+      if (tenancy === null) {
+        return next(new ServerError("Tenancy is Not found"));
+      }
+
+      const collaberatorResp = await tenancy.ListOpenInvites();
+      res.status(200).send(collaberatorResp);
+    } catch (error) {
+      return next(error as Error);
+    }
+  }
+);
+
+// pending invites
+collaboratorsRouter.get(
+  "/pending",
+  AuthRequired,
+  async (req: Request, res: Response<collaboratorsResponse[]>, next: NextFunction) => {
+    try {
+      const token = DecodeTokenFromHeader(req);
+      const tenancy = await Tenancy.findById(token.tenancyId);
+
+      if (tenancy === null) {
+        return next(new ServerError("Tenancy is Not found"));
+      }
+
+      const collaberatorResp = await tenancy.ListPendingInvites();
+      res.status(200).send(collaberatorResp);
+    } catch (error) {
+      return next(error as Error);
+    }
   }
 );
 
 // Viewing a single collaborator
 collaboratorsRouter.get(
-  "/collaborators/:collaboratorTenantUuid",
+  "/:collaberatorID",
   AuthRequired,
-  (req: Request<{ collaboratorTenantUuid: string }>, res: Response<collaboratorsResponse>) => {
-    console.log("Fetching collaborator with UUID:", req.params.collaboratorTenantUuid);
-    res.status(200).send();
+  validate(collaberatorIDParam),
+  async (req: Request<{ collaberatorID: string }>, res: Response<collaboratorsResponse>, next: NextFunction) => {
+    try {
+      const token = DecodeTokenFromHeader(req);
+      const tenancy = await Tenancy.findById(token.tenancyId);
+
+      if (tenancy === null) {
+        return next(new ServerError("Tenancy is Not found"));
+      }
+
+      const collaberator = await tenancy.findCollaborator(new mongoose.Types.ObjectId(req.params.collaberatorID));
+      res.status(200).send(collaberator);
+    } catch (error) {
+      return next(error as Error);
+    }
   }
 );
 
 // Removing a collaborator
 collaboratorsRouter.delete(
-  "/collaborators/:collaboratorTenantUuid",
+  "/:collaberatorID",
+  validate(collaberatorIDParam),
+
   AuthRequired,
-  (req: Request<{ collaboratorTenantUuid: string }>, res: Response) => {
-    console.log("Removing collaborator with UUID:", req.params.collaboratorTenantUuid);
-    res.status(200).send();
+  async (req: Request<{ collaberatorID: string }>, res: Response, next: NextFunction) => {
+    try {
+      const token = DecodeTokenFromHeader(req);
+      const tenancy = await Tenancy.findById(token.tenancyId);
+
+      if (tenancy === null) {
+        return next(new ServerError("Tenancy is Not found"));
+      }
+
+      await tenancy.removeCollaborator(new mongoose.Types.ObjectId(req.params.collaberatorID));
+      res.status(200).send();
+    } catch (error) {
+      return next(error as Error);
+    }
   }
 );

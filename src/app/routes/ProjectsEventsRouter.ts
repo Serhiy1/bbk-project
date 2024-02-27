@@ -34,8 +34,8 @@ ProjectEventRouter.post(
   AuthRequired,
   validate(createProject),
   async (req: Request<never, ProjectResponse, ProjectRequest>, res: Response<ProjectResponse>, next: NextFunction) => {
-    const session = await mongoose.startSession();
     try {
+      const session = await mongoose.startSession();
       const token = DecodeTokenFromHeader(req);
       const tenancy = await Tenancy.findById(token.tenancyId);
 
@@ -50,7 +50,6 @@ ProjectEventRouter.post(
       await session.commitTransaction();
       res.status(201).send(project.ToProjectResponse());
     } catch (error) {
-      session.abortTransaction();
       return next(error as Error);
     }
   }
@@ -142,8 +141,8 @@ ProjectEventRouter.post(
   validate(projectIDParam),
   validate(createEvent),
   async (req: Request<projectId, EventResponse, EventRequest>, res: Response<EventResponse>, next: NextFunction) => {
-    const session = await mongoose.startSession();
     try {
+      const session = await mongoose.startSession();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [project, _] = await FetchProjectFromRequestSafe(req);
       const event = await Event.NewEventFromRequest(req.body, project._id);
@@ -155,7 +154,6 @@ ProjectEventRouter.post(
 
       return res.status(201).send(event.ToEventResponse());
     } catch (error) {
-      session.abortTransaction();
       return next(error as Error);
     }
   }

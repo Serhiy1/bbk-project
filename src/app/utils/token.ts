@@ -21,8 +21,8 @@ export interface UserTokenInfo {
 
 export function NewToken(user: UserTokenInfo) {
   const info: tokenContents = {
-    email: user.email,
-    username: user.userName,
+    email: Buffer.from(user.email, 'utf8').toString('base64'),
+    username: Buffer.from(user.userName, 'utf8').toString('base64'),
     id: user.UserId,
     tenancy: user.tenancyId,
   };
@@ -36,8 +36,8 @@ export function DecodeToken(token: string): UserTokenInfo {
   const decoded = jwt.verify(token, JWTSignKey) as tokenContents;
 
   const userTokenInfo: UserTokenInfo = {
-    email: decoded.email,
-    userName: decoded.username,
+    email: Buffer.from(decoded.email, 'base64').toString('utf8'),
+    userName: Buffer.from(decoded.username, 'base64').toString('utf8'),
     UserId: decoded.id,
     tenancyId: decoded.tenancy,
   };

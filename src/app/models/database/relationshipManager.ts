@@ -31,10 +31,10 @@ interface relationshipManagerMethods {
   status: () => string;
 
   // function when a collaberator adds back a collaberator
-  acceptInvite: (request: collaboratorsRequest) => void;
+  acceptInvite: (OwnerTenantID: mongoose.Types.ObjectId, request: collaboratorsRequest) => Promise<void>;
 
   // function when a collaberator is deleted
-  deleteCollaborator: (collaberatorTenantID: mongoose.Types.ObjectId) => void;
+  unAcceptInvite: (collaberatorTenantID: mongoose.Types.ObjectId) => Promise<void>;
 }
 
 interface relationshipManagerQueryHelpers {}
@@ -53,9 +53,13 @@ interface relationshipManagerModel
   ) => Promise<relationshipManagerDocument>;
 }
 
-const relationshipManagerSchema = new Schema<IRelationshipManager, relationshipManagerModel, relationshipManagerMethods>({
+const relationshipManagerSchema = new Schema<
+  IRelationshipManager,
+  relationshipManagerModel,
+  relationshipManagerMethods
+>({
   _id: { type: Schema.Types.ObjectId, required: true },
-  collaberatorsInfo: { type: Map, of: { type: Object, required: true } },
+  collaberatorsInfo: { type: Map, of: { type: Object } },
   collaberators: [{ type: Schema.Types.ObjectId, required: true }],
   collaberatorsHash: { type: String, required: true },
 });
@@ -79,27 +83,29 @@ relationshipManagerSchema.static(
   ): Promise<relationshipManagerDocument> {
     const hash = collaboratorHash(OwnerTenantID, new mongoose.Types.ObjectId(request.tenantID));
 
-    // create the collaborator info of the first tenant from the request
-    const collaberatorsInfo = {
-      tenantID: OwnerTenantID,
+    const collaberatorOneRequest = {
+      tenantID: new mongoose.Types.ObjectId(request.tenantID),
       friendlyName: request.friendlyName,
       accepted: true,
       projects: [],
     };
 
-    const document = await this.create({
-      _id: new mongoose.Types.ObjectId(),
-      collaberatorsInfo: new Map<mongoose.Types.ObjectId, collaboratorInternal>(),
-      collaberators: [OwnerTenantID, new mongoose.Types.ObjectId(request.tenantID)],
-      collaberatorsHash: hash,
-    });
-
-    document.collaberatorsInfo.set(OwnerTenantID, collaberatorsInfo);
-    document.collaberatorsInfo.set(new mongoose.Types.ObjectId(request.tenantID), {
-      tenantID: new mongoose.Types.ObjectId(request.tenantID),
+    const collaberatorTwoRequest = {
+      tenantID: OwnerTenantID,
       friendlyName: "",
       accepted: false,
       projects: [],
+    };
+
+    const collaberatorsMap: Map<mongoose.Types.ObjectId, collaboratorInternal> = new Map();
+    collaberatorsMap.set(OwnerTenantID, collaberatorOneRequest);
+    collaberatorsMap.set(new mongoose.Types.ObjectId(request.tenantID), collaberatorTwoRequest);
+
+    const document = await this.create({
+      _id: new mongoose.Types.ObjectId(),
+      collaberatorsInfo: collaberatorsMap,
+      collaberators: [OwnerTenantID, new mongoose.Types.ObjectId(request.tenantID)],
+      collaberatorsHash: hash,
     });
 
     return document;
@@ -109,12 +115,12 @@ relationshipManagerSchema.static(
 relationshipManagerSchema.method("status", function status() {
   let status: boolean = true;
 
-  for (const collaberatorTenantID in this.collaberators) {
-    if (this.collaberatorsInfo.get(new mongoose.Types.ObjectId(collaberatorTenantID))?.accepted === false) {
+  // go through each collaberator and check if they have accepted
+  this.collaberatorsInfo.forEach((collaberator) => {
+    if (!collaberator.accepted) {
       status = false;
-      break;
     }
-  }
+  });
 
   // PENDING if false and ACCEPTED if status is true
   return status ? "ACTIVE" : "PENDING";
@@ -139,22 +145,41 @@ relationshipManagerSchema.method(
   }
 );
 
-relationshipManagerSchema.method("acceptInvite", function acceptInvite(request: collaboratorsRequest) {
-  const collaberatorTenantID = new mongoose.Types.ObjectId(request.tenantID);
+relationshipManagerSchema.method(
+  "acceptInvite",
+  function acceptInvite(AcceptingTenantID: mongoose.Types.ObjectId, request: collaboratorsRequest) {
+    // update the collaberatorsInfo accept field and friendlyName feild
+    const collaboratorRequest = this.collaberatorsInfo.get(AcceptingTenantID);
 
-  // push the collaberator to the collaberators array
-  this.collaberators.push(collaberatorTenantID);
+    if (collaboratorRequest) {
+      collaboratorRequest.accepted = true;
+      collaboratorRequest.friendlyName = request.friendlyName;
+      this.collaberatorsInfo.set(AcceptingTenantID, collaboratorRequest);
+      this.markModified("collaberatorsInfo");
+      this.save();
+    }
+  }
+);
 
-  // add the collaberator to the collaberatorsInfo map
-  this.collaberatorsInfo.set(collaberatorTenantID, {
-    tenantID: collaberatorTenantID,
-    friendlyName: request.friendlyName,
-    accepted: true,
-    projects: [],
-  });
-});
+relationshipManagerSchema.method(
+  "unAcceptInvite",
+  async function unAcceptInvite(OwnerTenantID: mongoose.Types.ObjectId) {
+    // Get the collaborator from the collaboratorsInfo map
+    const collaborator = this.collaberatorsInfo.get(OwnerTenantID);
 
-export const RelationshipManager = model<IRelationshipManager, relationshipManagerModel>("Event", relationshipManagerSchema);
+    if (collaborator) {
+      collaborator.accepted = false;
+      this.collaberatorsInfo.set(OwnerTenantID, collaborator);
+      this.markModified("collaberatorsInfo");
+      await this.save();
+    }
+  }
+);
+
+export const RelationshipManager = model<IRelationshipManager, relationshipManagerModel>(
+  "RelationshipManager",
+  relationshipManagerSchema
+);
 
 /* create a uniqe string from the two participants without needing to worry about argument order */
 export function collaboratorHash(
