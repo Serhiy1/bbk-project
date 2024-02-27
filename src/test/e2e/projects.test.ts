@@ -1,21 +1,16 @@
 /* Tests that cover the Projects Endpoint */
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { beforeAll, describe, expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 import request from "supertest";
 
-import { app } from "../app/app";
-import { EventResponse, ProjectDiffRequest, ProjectDiffResponse, ProjectResponse } from "../app/models/types/projects";
-import { connectToDatabase } from "../app/utils/utils";
-import { CreateOverrideDiff, CreateRandomEvent, CreateRandomProject, Person, SignupPerson } from "./utils";
-
-let mongo: MongoMemoryServer;
-
-beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  connectToDatabase(uri);
-});
+import { app } from "../../app/app";
+import {
+  EventResponse,
+  ProjectDiffRequest,
+  ProjectDiffResponse,
+  ProjectResponse,
+} from "../../app/models/types/projects";
+import { CreateOverrideDiff, CreateRandomEvent, CreateRandomProject, Person, SignupPerson } from "../utils/utils";
 
 // Describe positive tests
 describe("Positive Tests", () => {
@@ -166,7 +161,6 @@ describe("Positive Tests", () => {
     const res = await request(app)
       .get(`/Projects/${firstProjectID}/events/${firstEventID}`)
       .set("Authorization", `Bearer ${personToken}`);
-    console.log(res.body.message);
     expect(res.statusCode).toBe(200);
     const res_body = res.body as EventResponse;
     expect(res_body).toHaveProperty("eventId", firstEventID);
@@ -392,7 +386,6 @@ describe("Project Input Validation", () => {
       .get(`/Projects/${res.body.projectId}/events/123`)
       .set("Authorization", `Bearer ${token}`);
     expect(res2.statusCode).toBe(400);
-    console.log(res2.body);
     expect(res2.body.message).toBe("A valid event ID is required");
   });
 
@@ -511,8 +504,4 @@ describe("Authentication Tests", () => {
     const res = await request(app).get(`/Projects/${realProjectID}/events/${realEventID}`);
     expect(res.statusCode).toBe(403);
   });
-});
-
-afterAll(async () => {
-  await mongo.stop();
 });

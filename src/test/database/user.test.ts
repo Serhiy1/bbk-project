@@ -1,20 +1,10 @@
 /* tests the user Model */
 
-import { afterAll, beforeAll, expect, test } from "@jest/globals";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 
 import { User } from "../../app/models/database/user";
-import { connectToDatabase } from "../../app/utils/utils";
-import { Person } from "../utils";
-
-let mongo: MongoMemoryServer;
-
-beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  connectToDatabase(uri);
-});
+import { Person } from "../utils/utils";
 
 test("test New User Static Function", async () => {
   const person = new Person();
@@ -78,8 +68,4 @@ test("test toUserResponse Method", async () => {
   expect(userResponse).toHaveProperty("tenantID", user.tenancyId.toString());
   expect(userResponse).toHaveProperty("username", user.userName);
   expect(userResponse).toHaveProperty("email", user.email);
-});
-
-afterAll(async () => {
-  await mongo.stop();
 });

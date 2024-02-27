@@ -1,24 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* Tests that cover the Projects Endpoint */
-import { de, faker } from "@faker-js/faker";
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { faker } from "@faker-js/faker";
+import { beforeAll, describe, expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 import request from "supertest";
 
-import { app } from "../app/app";
-import { Tenancy } from "../app/models/database/tenancy";
-import { collaboratorsRequest } from "../app/models/types/collaborators";
-import { connectToDatabase } from "../app/utils/utils";
-import { Person, SignupPerson } from "./utils";
-
-let mongo: MongoMemoryServer;
-
-beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  connectToDatabase(uri);
-});
+import { app } from "../../app/app";
+import { Tenancy } from "../../app/models/database/tenancy";
+import { collaboratorsRequest } from "../../app/models/types/collaborators";
+import { Person, SignupPerson } from "../utils/utils";
 
 describe(" Collaborators workflow", () => {
   let person1: Person;
@@ -291,17 +281,11 @@ describe(" Collaborators endpoint validation", () => {
       .set("Authorization", `Bearer ${deletedperson.token}`);
     expect(res1.statusCode).toBe(500);
   });
-  
+
   test("Removing a collaberators with a signed token but no tenancy", async () => {
     const res1 = await request(app)
       .delete(`/collaborators/${person1.token_info.tenancyId}`)
       .set("Authorization", `Bearer ${deletedperson.token}`);
     expect(res1.statusCode).toBe(500);
   });
-  
-  
-});
-
-afterAll(async () => {
-  await mongo.stop();
 });

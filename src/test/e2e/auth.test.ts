@@ -1,9 +1,8 @@
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { describe, expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 import request from "supertest";
 
-import { app } from "../app/app";
+import { app } from "../../app/app";
 // import { DecodeToken } from "../app/middleware/authentication";
 // import { UserTokenInfo } from "../app/models/database/user";
 import {
@@ -12,22 +11,13 @@ import {
   SignupRequest,
   SignupResponse,
   UserResponse,
-} from "../app/models/types/authentications";
-import { NewToken } from "../app/utils/token";
-import { connectToDatabase } from "../app/utils/utils";
-import { Person } from "./utils";
+} from "../../app/models/types/authentications";
+import { NewToken } from "../../app/utils/token";
+import { Person } from "../utils/utils";
 
-let mongo: MongoMemoryServer;
 let FirstPerson: Person;
 let FirstToken: string;
 let FirstTenancyID: string;
-
-/* Creating the database for the suite. */
-beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  connectToDatabase(uri);
-});
 
 describe("Sign Up And Login", () => {
   test("Successful signup flow", async () => {
@@ -223,9 +213,4 @@ describe("whoami Validation", () => {
     const res = await request(app).get("/user/whoami").set("Authorization", `Bearer ${NonexistentToken}`);
     expect(res.statusCode).toBe(404);
   });
-});
-
-/* Closing database connection at the end of the suite. */
-afterAll(async () => {
-  await mongo.stop();
 });

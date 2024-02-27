@@ -1,20 +1,10 @@
 import { faker } from "@faker-js/faker";
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { beforeAll, describe, expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 
 import { Project } from "../../app/models/database/project";
 import { Tenancy, TenancyDocument } from "../../app/models/database/tenancy";
-import { connectToDatabase } from "../../app/utils/utils";
-import { CreateRandomProject } from "../utils";
-
-let mongo: MongoMemoryServer;
-
-beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  connectToDatabase(uri);
-});
+import { CreateRandomProject } from "../utils/utils";
 
 test("test NewTenancyFromRequest Static Function", async () => {
   const tenancy = await Tenancy.NewTenancy();
@@ -245,9 +235,4 @@ test("test findCollaborator on unknown collaborator", async () => {
 
   // remove a collaborator that does not exist
   await expect(tenancy.findCollaborator(new mongoose.Types.ObjectId())).rejects.toThrow("unknown collaborator");
-});
-
-/* Closing database connection at the end of the suite. */
-afterAll(async () => {
-  await mongo.stop();
 });

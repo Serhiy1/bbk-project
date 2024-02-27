@@ -1,19 +1,9 @@
 import { faker } from "@faker-js/faker";
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { beforeAll, describe, expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 
 import { RelationshipManager, relationshipManagerDocument } from "../../app/models/database/relationshipManager";
 import { collaboratorsRequest } from "../../app/models/types/collaborators";
-import { connectToDatabase } from "../../app/utils/utils";
-
-let mongo: MongoMemoryServer;
-
-beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  connectToDatabase(uri);
-});
 
 // Create a new RelationshipManager from a collaboratorsRequest
 test("test newRelationship Static Function", async () => {
@@ -102,21 +92,9 @@ describe("test status and acceptInvite methods", () => {
       friendlyName: "test",
     };
 
-    console.log(`tenant id One: ${tenantIDOne}`);
-    console.log(`tenant id two: ${tenantIDTwo}`);
-    console.log(`collaborator Info before accepting ${JSON.stringify(relationshipManager.collaberatorsInfo)}`);
-
     await relationshipManager.acceptInvite(tenantIDTwo, request);
 
-    console.log(`collaborator Info after accepting ${JSON.stringify(relationshipManager.collaberatorsInfo)}`);
-
     const relationshipFromDB = await RelationshipManager.findById(relationshipManager._id);
-
-    console.log(
-      `collaborator Info from DB after saving ${JSON.stringify(
-        (relationshipFromDB as relationshipManagerDocument).collaberatorsInfo
-      )}`
-    );
 
     expect((relationshipFromDB as relationshipManagerDocument).status()).toBe("ACTIVE");
   });
@@ -184,60 +162,37 @@ describe("test find by collaberator Hash method", () => {
       friendlyName: faker.company.name(),
     };
   }
+  
+  test("test toCollaboratorResponse method", async () => {
+
+    const relationship = await RelationshipManager.findByCollaborators(tenantIDOne, tenantIDTwo);
+    expect(relationship).not.toBeNull();
+
+  
+    const responseOne = (relationship as relationshipManagerDocument).toCollaboratorResponse(tenantIDOne);
+  
+    expect(responseOne).toHaveProperty("tenantID", tenantIDTwo.toString());
+    expect(responseOne).toHaveProperty("friendlyName");
+    expect(responseOne).toHaveProperty("status", "ACTIVE");
+    expect(responseOne).toHaveProperty("projects", []);
+  
+    const responseTwo = (relationship as relationshipManagerDocument).toCollaboratorResponse(tenantIDTwo);
+  
+    expect(responseTwo).toHaveProperty("tenantID", tenantIDOne.toString());
+    expect(responseTwo).toHaveProperty("friendlyName");
+    expect(responseTwo).toHaveProperty("status", "ACTIVE");
+    expect(responseTwo).toHaveProperty("projects", []);
+  });
+  
+  test("test to collaberator response not found", async () => {
+
+    const relationship = await RelationshipManager.findByCollaborators(tenantIDOne, tenantIDTwo);
+    expect(relationship).not.toBeNull();
+  
+    expect(() => (relationship as relationshipManagerDocument).toCollaboratorResponse(new mongoose.Types.ObjectId())).toThrow();
+  });
+  
 });
 
-test("test toCollaboratorResponse method", async () => {
-  const tenantIDOne = new mongoose.Types.ObjectId();
-  const tenantIDTwo = new mongoose.Types.ObjectId();
 
-  const requestOne: collaboratorsRequest = {
-    tenantID: tenantIDTwo.toString(),
-    friendlyName: faker.company.name(),
-  };
-
-  const requestTwo: collaboratorsRequest = {
-    tenantID: tenantIDOne.toString(),
-    friendlyName: faker.company.name(),
-  };
-
-  const relationship = await RelationshipManager.newRelationship(tenantIDOne, requestOne);
-  await relationship.acceptInvite(tenantIDTwo, requestTwo);
-
-  const responseOne = relationship.toCollaboratorResponse(tenantIDOne);
-
-  expect(responseOne).toHaveProperty("tenantID", tenantIDTwo.toString());
-  expect(responseOne).toHaveProperty("friendlyName", requestOne.friendlyName);
-  expect(responseOne).toHaveProperty("status", "ACTIVE");
-  expect(responseOne).toHaveProperty("projects", []);
-
-  const responseTwo = relationship.toCollaboratorResponse(tenantIDTwo);
-
-  expect(responseTwo).toHaveProperty("tenantID", tenantIDOne.toString());
-  expect(responseTwo).toHaveProperty("friendlyName", requestTwo.friendlyName);
-  expect(responseTwo).toHaveProperty("status", "ACTIVE");
-  expect(responseTwo).toHaveProperty("projects", []);
-});
-
-test("test to collaberator response not found", async () => {
-  const tenantIDOne = new mongoose.Types.ObjectId();
-  const tenantIDTwo = new mongoose.Types.ObjectId();
-
-  const requestOne: collaboratorsRequest = {
-    tenantID: tenantIDTwo.toString(),
-    friendlyName: faker.company.name(),
-  };
-
-  const requestTwo: collaboratorsRequest = {
-    tenantID: tenantIDOne.toString(),
-    friendlyName: faker.company.name(),
-  };
-
-  const relationship = await RelationshipManager.newRelationship(tenantIDOne, requestOne);
-  await relationship.acceptInvite(tenantIDTwo, requestTwo);
-
-  expect(() => relationship.toCollaboratorResponse(new mongoose.Types.ObjectId())).toThrow();
-});
-
-afterAll(async () => {
-  await mongo.stop();
-});
+  

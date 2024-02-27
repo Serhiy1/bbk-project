@@ -3,10 +3,10 @@ import { expect } from "@jest/globals";
 import { Express } from "express";
 import request from "supertest";
 
-import { SignupRequest } from "../app/models/types/authentications";
-import { ProjectDiffRequest, ProjectRequest, ProjectResponse } from "../app/models/types/projects";
-import { EventRequest } from "../app/models/types/projects";
-import { DecodeToken, UserTokenInfo } from "../app/utils/token";
+import { SignupRequest } from "../../app/models/types/authentications";
+import { ProjectDiffRequest, ProjectRequest, ProjectResponse } from "../../app/models/types/projects";
+import { EventRequest } from "../../app/models/types/projects";
+import { DecodeToken, UserTokenInfo } from "../../app/utils/token";
 
 export class Person {
   userName: string;
@@ -35,7 +35,7 @@ export async function SignupPerson(person: Person, app: Express): Promise<string
   expect(res.statusCode).toBe(201);
   person.token = res.body.token;
   person.token_info = DecodeToken(person.token);
-  
+
   return res.body.token;
 }
 
