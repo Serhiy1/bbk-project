@@ -7,7 +7,8 @@ import { Tenancy, TenancyDocument } from "../../app/models/database/tenancy";
 import { CreateRandomProject } from "../utils/utils";
 
 test("test NewTenancyFromRequest Static Function", async () => {
-  const tenancy = await Tenancy.NewTenancy();
+  const companyName = faker.company.name();
+  const tenancy = await Tenancy.NewTenancy(companyName);
   await tenancy.save();
 
   // get the tenancy from the database via id
@@ -19,7 +20,8 @@ test("test NewTenancyFromRequest Static Function", async () => {
 });
 
 test("test listAllProjects Method", async () => {
-  const tenancy = await Tenancy.NewTenancy();
+  const companyName = faker.company.name();
+  const tenancy = await Tenancy.NewTenancy(companyName);
   await tenancy.save();
 
   const RandomProjects = [CreateRandomProject(), CreateRandomProject(), CreateRandomProject()];
@@ -54,7 +56,8 @@ test("test listAllProjects Method", async () => {
 });
 
 test("test AssertProjectInTenancy Method", async () => {
-  const tenancy = await Tenancy.NewTenancy();
+  const companyName = faker.company.name();
+  const tenancy = await Tenancy.NewTenancy(companyName);
   const project = await Project.NewProjectFromRequest(CreateRandomProject(), tenancy._id);
   tenancy.projects.push(project._id);
   Promise.all([tenancy.save(), project.save()]);
@@ -71,14 +74,17 @@ test("test AssertProjectInTenancy Method", async () => {
 
 describe("test ListPendingInvites Method", () => {
   let tenancy1: TenancyDocument;
+  const companyName1 = faker.company.name();
   let tenancy2: TenancyDocument;
+  const companyName2 = faker.company.name();
   let tenancy3: TenancyDocument;
+  const companyName3 = faker.company.name();
 
   // beforeall creates three tenancies
   beforeAll(async () => {
-    tenancy1 = await Tenancy.NewTenancy();
-    tenancy2 = await Tenancy.NewTenancy();
-    tenancy3 = await Tenancy.NewTenancy();
+    tenancy1 = await Tenancy.NewTenancy(companyName1);
+    tenancy2 = await Tenancy.NewTenancy(companyName2);
+    tenancy3 = await Tenancy.NewTenancy(companyName3);
 
     tenancy1.save();
     tenancy2.save();
@@ -212,7 +218,8 @@ describe("test ListPendingInvites Method", () => {
 });
 
 test("test AddCollaborator Method, collaborator does not exist should throw error", async () => {
-  const tenancy = await Tenancy.NewTenancy();
+  const companyName = faker.company.name();
+  const tenancy = await Tenancy.NewTenancy(companyName);
   await tenancy.save();
 
   // add a collaborator that does not exist
@@ -222,7 +229,8 @@ test("test AddCollaborator Method, collaborator does not exist should throw erro
 });
 
 test("test removeCollaborator Method, collaborator does not exist should throw error", async () => {
-  const tenancy = await Tenancy.NewTenancy();
+  const companyName = faker.company.name();
+  const tenancy = await Tenancy.NewTenancy(companyName);
   await tenancy.save();
 
   // remove a collaborator that does not exist
@@ -230,7 +238,8 @@ test("test removeCollaborator Method, collaborator does not exist should throw e
 });
 
 test("test findCollaborator on unknown collaborator", async () => {
-  const tenancy = await Tenancy.NewTenancy();
+  const companyName = faker.company.name();
+  const tenancy = await Tenancy.NewTenancy(companyName);
   await tenancy.save();
 
   // remove a collaborator that does not exist

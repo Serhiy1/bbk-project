@@ -7,14 +7,12 @@ import { JWTSignKey } from "../../config/config";
 
 interface tokenContents {
   email: string;
-  username: string;
   id: Types.ObjectId;
   tenancy: Types.ObjectId;
 }
 
 export interface UserTokenInfo {
   UserId: mongoose.Types.ObjectId;
-  userName: string;
   email: string;
   tenancyId: mongoose.Types.ObjectId;
 }
@@ -22,7 +20,6 @@ export interface UserTokenInfo {
 export function NewToken(user: UserTokenInfo) {
   const info: tokenContents = {
     email: Buffer.from(user.email, "utf8").toString("base64"),
-    username: Buffer.from(user.userName, "utf8").toString("base64"),
     id: user.UserId,
     tenancy: user.tenancyId,
   };
@@ -37,7 +34,6 @@ export function DecodeToken(token: string): UserTokenInfo {
 
   const userTokenInfo: UserTokenInfo = {
     email: Buffer.from(decoded.email, "base64").toString("utf8"),
-    userName: Buffer.from(decoded.username, "base64").toString("utf8"),
     UserId: decoded.id,
     tenancyId: decoded.tenancy,
   };

@@ -9,7 +9,6 @@ import { Person } from "../utils/utils";
 test("test New User Static Function", async () => {
   const person = new Person();
   const user = await User.NewUser({
-    userName: person.userName,
     email: person.email,
     passwordHash: person.password,
     tenancyId: new mongoose.Types.ObjectId(),
@@ -20,7 +19,6 @@ test("test New User Static Function", async () => {
   const userFromDB = await User.findById(user._id);
 
   // check that the user has the correct properties
-  expect(userFromDB).toHaveProperty("userName", person.userName);
   expect(userFromDB).toHaveProperty("email", person.email);
   expect(userFromDB).toHaveProperty("passwordHash");
   expect(userFromDB).toHaveProperty("tenancyId");
@@ -29,7 +27,6 @@ test("test New User Static Function", async () => {
 test("test AlreadyExists Static Function", async () => {
   const person = new Person();
   const user = await User.NewUser({
-    userName: person.userName,
     email: person.email,
     passwordHash: person.password,
     tenancyId: new mongoose.Types.ObjectId(),
@@ -42,7 +39,6 @@ test("test AlreadyExists Static Function", async () => {
 test("test toTokenInfo Method", async () => {
   const person = new Person();
   const user = await User.NewUser({
-    userName: person.userName,
     email: person.email,
     passwordHash: person.password,
     tenancyId: new mongoose.Types.ObjectId(),
@@ -50,7 +46,6 @@ test("test toTokenInfo Method", async () => {
   await user.save();
   const tokenInfo = user.toTokenInfo();
   expect(tokenInfo).toHaveProperty("UserId", user._id);
-  expect(tokenInfo).toHaveProperty("userName", user.userName);
   expect(tokenInfo).toHaveProperty("email", user.email);
   expect(tokenInfo).toHaveProperty("tenancyId", user.tenancyId);
 });
@@ -58,7 +53,6 @@ test("test toTokenInfo Method", async () => {
 test("test toUserResponse Method", async () => {
   const person = new Person();
   const user = await User.NewUser({
-    userName: person.userName,
     email: person.email,
     passwordHash: person.password,
     tenancyId: new mongoose.Types.ObjectId(),
@@ -66,6 +60,5 @@ test("test toUserResponse Method", async () => {
   await user.save();
   const userResponse = user.toUserResponse();
   expect(userResponse).toHaveProperty("tenantID", user.tenancyId.toString());
-  expect(userResponse).toHaveProperty("username", user.userName);
   expect(userResponse).toHaveProperty("email", user.email);
 });

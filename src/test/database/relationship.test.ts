@@ -8,12 +8,13 @@ import { collaboratorsRequest } from "../../app/models/types/collaborators";
 // Create a new RelationshipManager from a collaboratorsRequest
 test("test newRelationship Static Function", async () => {
   const tenantID = new mongoose.Types.ObjectId();
+  const company = faker.company.name();
   const request: collaboratorsRequest = {
     tenantID: new mongoose.Types.ObjectId().toString(),
     friendlyName: "test",
   };
 
-  const relationship = await RelationshipManager.newRelationship(tenantID, request);
+  const relationship = await RelationshipManager.newRelationship(tenantID, company, request);
   await relationship.save();
 
   // get the relationship from the database via id
@@ -31,12 +32,14 @@ test("test newRelationship Static Function", async () => {
 // test findByCollaborators Static Function, where the relationship exists
 test("test findByCollaborators Static Function", async () => {
   const tenantID = new mongoose.Types.ObjectId();
+  const company = faker.company.name();
+  
   const request: collaboratorsRequest = {
     tenantID: new mongoose.Types.ObjectId().toString(),
     friendlyName: "test",
   };
 
-  const relationship = await RelationshipManager.newRelationship(tenantID, request);
+  const relationship = await RelationshipManager.newRelationship(tenantID,company, request);
   await relationship.save();
 
   const relationshipFromDB = await RelationshipManager.findByCollaborators(
@@ -50,12 +53,14 @@ test("test findByCollaborators Static Function", async () => {
 // test findByCollaborators Static Function, where the relationship does not exist
 test("test findByCollaborators Static Function, where the relationship does not exist", async () => {
   const tenantID = new mongoose.Types.ObjectId();
+  const company = faker.company.name();
+  
   const request: collaboratorsRequest = {
     tenantID: new mongoose.Types.ObjectId().toString(),
     friendlyName: "test",
   };
 
-  const relationship = await RelationshipManager.newRelationship(tenantID, request);
+  const relationship = await RelationshipManager.newRelationship(tenantID, company, request);
   await relationship.save();
 
   const relationshipFromDB = await RelationshipManager.findByCollaborators(tenantID, new mongoose.Types.ObjectId());
@@ -68,6 +73,7 @@ test("test findByCollaborators Static Function, where the relationship does not 
 describe("test status and acceptInvite methods", () => {
   const tenantIDOne = new mongoose.Types.ObjectId();
   const tenantIDTwo = new mongoose.Types.ObjectId();
+  const company = faker.company.name();
   let relationshipManager: relationshipManagerDocument;
 
   // first test creates a relationship with one accepted and one not accepted, assert that status is PENDING
@@ -77,7 +83,7 @@ describe("test status and acceptInvite methods", () => {
       friendlyName: "test",
     };
 
-    relationshipManager = await RelationshipManager.newRelationship(tenantIDOne, request);
+    relationshipManager = await RelationshipManager.newRelationship(tenantIDOne,company, request);
     await relationshipManager.save();
 
     const relationshipFromDB = await RelationshipManager.findById(relationshipManager._id);
@@ -111,19 +117,25 @@ describe("test status and acceptInvite methods", () => {
 
 describe("test find by collaberator Hash method", () => {
   const tenantIDOne = new mongoose.Types.ObjectId();
+  const companyOne = faker.company.name();
+  
   const tenantIDTwo = new mongoose.Types.ObjectId();
+  const companyTwo = faker.company.name();
+  
   const tenantIDThree = new mongoose.Types.ObjectId();
+  
   const tenantIDFour = new mongoose.Types.ObjectId();
   let RelationshipOnetoTwo: relationshipManagerDocument;
   let RelationshipThreeToFour: relationshipManagerDocument;
 
   // convert the declarations above into a beforeall function
   beforeAll(async () => {
-    RelationshipOnetoTwo = await RelationshipManager.newRelationship(tenantIDOne, newCollaboratorRequest(tenantIDTwo));
+    RelationshipOnetoTwo = await RelationshipManager.newRelationship(tenantIDOne, companyOne, newCollaboratorRequest(tenantIDTwo));
     await RelationshipOnetoTwo.acceptInvite(tenantIDTwo, newCollaboratorRequest(tenantIDOne));
 
     RelationshipThreeToFour = await RelationshipManager.newRelationship(
       tenantIDThree,
+      companyTwo,
       newCollaboratorRequest(tenantIDFour)
     );
     await RelationshipThreeToFour.acceptInvite(tenantIDFour, newCollaboratorRequest(tenantIDThree));

@@ -11,6 +11,7 @@ interface ITenancy {
   _id: mongoose.Types.ObjectId;
   projects: mongoose.Types.ObjectId[];
   relationships: mongoose.Types.ObjectId[];
+  companyName: string;
 }
 
 // declare the methods of the model
@@ -34,21 +35,23 @@ export type TenancyDocument = HydratedDocument<ITenancy, ITenancyMethods>;
 
 // declare the Full Model along with any static methods
 export interface ITenancyModel extends Model<ITenancy, ITenancyQueryHelpers, ITenancyMethods> {
-  NewTenancy: () => Promise<HydratedDocument<ITenancy, ITenancyMethods>>;
+  NewTenancy: (companyName: string) => Promise<HydratedDocument<ITenancy, ITenancyMethods>>;
 }
 
 // Create the schema
 const TenancySchema = new Schema<ITenancy, ITenancyModel, ITenancyMethods>({
   _id: { type: Schema.Types.ObjectId, required: true },
   projects: [{ type: Schema.Types.ObjectId, ref: Project, required: true }],
+  companyName: { type: String, required: true },
   relationships: [{ type: Schema.Types.ObjectId, ref: RelationshipManager }],
 });
 
-TenancySchema.static("NewTenancy", async function NewTenancy(): Promise<HydratedDocument<ITenancy, ITenancyMethods>> {
+TenancySchema.static("NewTenancy", async function NewTenancy(companyName: string): Promise<HydratedDocument<ITenancy, ITenancyMethods>> {
   return this.create({
     _id: new mongoose.Types.ObjectId(),
     projects: [],
     relationships: [],
+    companyName: companyName
   });
 });
 
@@ -146,7 +149,7 @@ TenancySchema.method(
 
     if (relationship == null) {
       // if there is no open invite, create a new one
-      relationship = await RelationshipManager.newRelationship(this._id, collaberatorRequest);
+      relationship = await RelationshipManager.newRelationship(this._id, this.companyName, collaberatorRequest);
       this.relationships.push(relationship._id);
       otherTenancy.relationships.push(relationship._id);
     } else {

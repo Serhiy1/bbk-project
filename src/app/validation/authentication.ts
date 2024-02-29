@@ -6,7 +6,7 @@ export const signup = [
     "password",
     "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)."
   ).isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1 }),
-  body("username", "Username is required").not().isEmpty().trim().escape(),
+  body("companyName", "CompanyName is required").not().isEmpty().trim().escape(),
 ];
 
 export const login = [

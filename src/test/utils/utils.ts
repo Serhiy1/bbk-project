@@ -9,14 +9,14 @@ import { EventRequest } from "../../app/models/types/projects";
 import { DecodeToken, UserTokenInfo } from "../../app/utils/token";
 
 export class Person {
-  userName: string;
+  companyName: string;
   email: string;
   password: string;
   token: string;
   token_info: UserTokenInfo;
 
   constructor() {
-    this.userName = faker.internet.userName();
+    this.companyName = faker.company.name();
     this.email = faker.internet.email().toLowerCase();
     this.password = faker.internet.password({ length: 12, prefix: "@1T_" });
     this.token = "";
@@ -27,7 +27,7 @@ export class Person {
 export async function SignupPerson(person: Person, app: Express): Promise<string> {
   const signup_info: SignupRequest = {
     email: person.email,
-    username: person.userName,
+    companyName: person.companyName,
     password: person.password,
   };
 

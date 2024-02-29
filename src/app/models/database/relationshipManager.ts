@@ -49,6 +49,7 @@ interface relationshipManagerModel
   ) => Promise<relationshipManagerDocument | null>;
   newRelationship: (
     collaboratorOneTenantID: mongoose.Types.ObjectId,
+    owner_name: string,
     request: collaboratorsRequest
   ) => Promise<relationshipManagerDocument>;
 }
@@ -79,6 +80,7 @@ relationshipManagerSchema.static(
   "newRelationship",
   async function newRelationship(
     OwnerTenantID: mongoose.Types.ObjectId,
+    owner_name: string,
     request: collaboratorsRequest
   ): Promise<relationshipManagerDocument> {
     const hash = collaboratorHash(OwnerTenantID, new mongoose.Types.ObjectId(request.tenantID));
@@ -92,7 +94,7 @@ relationshipManagerSchema.static(
 
     const collaberatorTwoRequest = {
       tenantID: OwnerTenantID,
-      friendlyName: "",
+      friendlyName: `Prending Request from ${owner_name}`,
       accepted: false,
       projects: [],
     };

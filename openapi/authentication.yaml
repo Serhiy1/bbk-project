@@ -81,12 +81,12 @@ components:
           description: >
             Password must contain at least 8 characters, one uppercase letter, one lowercase letter,
             one number, and one special character (@$!%*?&).
-        username:
+        CompanyName:
           type: string
       required:
       - email
       - password
-      - username
+      - CompanyName
     SignupResponse:
       type: object
       properties:
@@ -122,9 +122,6 @@ components:
           type: string
         tenantID:
           type: string
-        username:
-          type: string
       required:
       - email
-      - username
       - tenantID
