@@ -1,18 +1,8 @@
-import { afterAll, beforeAll, expect, test } from "@jest/globals";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 
 import { Event, EventDocument } from "../../app/models/database/event";
-import { connectToDatabase } from "../../app/utils/utils";
-import { CreateRandomEvent } from "../utils";
-
-let mongo: MongoMemoryServer;
-
-beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  connectToDatabase(uri);
-});
+import { CreateRandomEvent } from "../utils/utils";
 
 test("test NewEventFromRequest Static Function", async () => {
   const eventdata = CreateRandomEvent();
@@ -56,8 +46,4 @@ test("ToEventResponse Method", async () => {
   expect(eventResponse).toHaveProperty("eventType", eventdata.eventType);
   expect(eventResponse).toHaveProperty("customMetaData");
   expect(eventResponse).toHaveProperty("projectId", projectID.toString());
-});
-
-afterAll(async () => {
-  await mongo.stop();
 });

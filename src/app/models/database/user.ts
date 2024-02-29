@@ -6,7 +6,6 @@ import { UserResponse } from "../types/authentications";
 
 // declare initialisation arguments
 interface IUserArgs {
-  userName: string;
   email: string;
   passwordHash: string;
   tenancyId: mongoose.Types.ObjectId;
@@ -38,7 +37,6 @@ interface IUserModel extends Model<IUser, IUserQueryHelpers, IUserMethods> {
 
 const userSchema = new Schema<IUser, IUserModel, IUserMethods, IUserQueryHelpers>({
   _id: { type: Schema.Types.ObjectId, required: true },
-  userName: { type: String, required: true },
   email: { type: String, required: true },
   passwordHash: { type: String, required: true },
   tenancyId: { type: Schema.Types.ObjectId, required: true },
@@ -47,7 +45,6 @@ const userSchema = new Schema<IUser, IUserModel, IUserMethods, IUserQueryHelpers
 userSchema.static("NewUser", async function NewUser(userInfo: IUserArgs): Promise<UserDocument> {
   return this.create({
     _id: new mongoose.Types.ObjectId(),
-    userName: userInfo.userName,
     email: userInfo.email,
     passwordHash: userInfo.passwordHash,
     tenancyId: userInfo.tenancyId,
@@ -62,7 +59,6 @@ userSchema.static("AlreadyExists", async function AlreadyExists(email: string): 
 userSchema.method("toTokenInfo", function toTokenInfo(): UserTokenInfo {
   return {
     UserId: this._id,
-    userName: this.userName,
     email: this.email,
     tenancyId: this.tenancyId,
   };
@@ -71,7 +67,6 @@ userSchema.method("toTokenInfo", function toTokenInfo(): UserTokenInfo {
 userSchema.method("toUserResponse", function toUserResponse(): UserResponse {
   return {
     tenantID: this.tenancyId.toString(),
-    username: this.userName,
     email: this.email,
   };
 });

@@ -185,17 +185,18 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        collaboratorsResponse: {
-            friendlyName?: string;
+        collaboratorsProject: {
+            projectName: string;
             /** Format: uuid */
-            tenantID?: string;
+            projectID: string;
+        };
+        collaboratorsResponse: {
+            friendlyName: string;
+            /** Format: uuid */
+            tenantID: string;
             /** @enum {string} */
-            status?: "PENDING" | "ACTIVE";
-            projects?: {
-                projectName: string;
-                /** Format: uuid */
-                projectID: string;
-            }[];
+            status: "PENDING" | "ACTIVE";
+            projects: components["schemas"]["collaboratorsProject"][];
         };
         collaboratorsRequest: {
             friendlyName: string;

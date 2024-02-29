@@ -3,36 +3,39 @@ import { expect } from "@jest/globals";
 import { Express } from "express";
 import request from "supertest";
 
-import { SignupRequest } from "../app/models/types/authentications";
-import { ProjectDiffRequest, ProjectRequest, ProjectResponse } from "../app/models/types/projects";
-import { EventRequest } from "../app/models/types/projects";
-import { UserTokenInfo } from "../app/utils/token";
+import { SignupRequest } from "../../app/models/types/authentications";
+import { ProjectDiffRequest, ProjectRequest, ProjectResponse } from "../../app/models/types/projects";
+import { EventRequest } from "../../app/models/types/projects";
+import { DecodeToken, UserTokenInfo } from "../../app/utils/token";
 
 export class Person {
-  userName: string;
+  companyName: string;
   email: string;
   password: string;
   token: string;
-  token_info?: UserTokenInfo;
+  token_info: UserTokenInfo;
 
   constructor() {
-    this.userName = faker.internet.userName();
+    this.companyName = faker.company.name();
     this.email = faker.internet.email().toLowerCase();
     this.password = faker.internet.password({ length: 12, prefix: "@1T_" });
     this.token = "";
-    this.token_info;
+    this.token_info = {} as UserTokenInfo;
   }
 }
 
 export async function SignupPerson(person: Person, app: Express): Promise<string> {
   const signup_info: SignupRequest = {
     email: person.email,
-    username: person.userName,
+    companyName: person.companyName,
     password: person.password,
   };
 
   const res = await request(app).post("/user/signup").send(signup_info);
   expect(res.statusCode).toBe(201);
+  person.token = res.body.token;
+  person.token_info = DecodeToken(person.token);
+
   return res.body.token;
 }
 

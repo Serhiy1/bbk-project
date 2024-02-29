@@ -1,9 +1,8 @@
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { describe, expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 import request from "supertest";
 
-import { app } from "../app/app";
+import { app } from "../../app/app";
 // import { DecodeToken } from "../app/middleware/authentication";
 // import { UserTokenInfo } from "../app/models/database/user";
 import {
@@ -12,22 +11,13 @@ import {
   SignupRequest,
   SignupResponse,
   UserResponse,
-} from "../app/models/types/authentications";
-import { NewToken } from "../app/utils/token";
-import { connectToDatabase } from "../app/utils/utils";
-import { Person } from "./utils";
+} from "../../app/models/types/authentications";
+import { NewToken } from "../../app/utils/token";
+import { Person } from "../utils/utils";
 
-let mongo: MongoMemoryServer;
 let FirstPerson: Person;
 let FirstToken: string;
 let FirstTenancyID: string;
-
-/* Creating the database for the suite. */
-beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  connectToDatabase(uri);
-});
 
 describe("Sign Up And Login", () => {
   test("Successful signup flow", async () => {
@@ -35,7 +25,7 @@ describe("Sign Up And Login", () => {
 
     const user_info: SignupRequest = {
       email: FirstPerson.email,
-      username: FirstPerson.userName,
+      companyName: FirstPerson.companyName,
       password: FirstPerson.password,
     };
 
@@ -69,7 +59,6 @@ describe("Sign Up And Login", () => {
     const res_body: UserResponse = res.body;
 
     expect(res_body.email).toBe(FirstPerson.email);
-    expect(res_body.username).toBe(FirstPerson.userName);
     expect(res_body.tenantID).toBe(FirstTenancyID);
   });
 
@@ -111,7 +100,7 @@ describe("Signup Input Validation", () => {
     const missingEmailPerson = new Person();
 
     const user_info = {
-      username: missingEmailPerson.userName,
+      companyName: missingEmailPerson.companyName,
       password: missingEmailPerson.password,
     };
 
@@ -124,7 +113,7 @@ describe("Signup Input Validation", () => {
 
     const user_info = {
       email: missingPasswordPerson.email,
-      username: missingPasswordPerson.userName,
+      companyName: missingPasswordPerson.companyName,
     };
 
     const res = await request(app).post("/user/signup").send(user_info);
@@ -137,7 +126,7 @@ describe("Signup Input Validation", () => {
 
     const user_info: SignupRequest = {
       email: PersonWithWeakPassword.email,
-      username: PersonWithWeakPassword.userName,
+      companyName: PersonWithWeakPassword.companyName,
       password: PersonWithWeakPassword.password,
     };
 
@@ -149,7 +138,7 @@ describe("Signup Input Validation", () => {
     const person = new Person();
     const user_info: SignupRequest = {
       email: person.email,
-      username: person.userName,
+      companyName: person.companyName,
       password: person.password,
     };
     // First signup
@@ -216,16 +205,10 @@ describe("whoami Validation", () => {
     const NonexistentToken = NewToken({
       email: NonExistentPerson.email,
       UserId: new mongoose.Types.ObjectId(),
-      userName: NonExistentPerson.userName,
       tenancyId: new mongoose.Types.ObjectId(),
     });
 
     const res = await request(app).get("/user/whoami").set("Authorization", `Bearer ${NonexistentToken}`);
     expect(res.statusCode).toBe(404);
   });
-});
-
-/* Closing database connection at the end of the suite. */
-afterAll(async () => {
-  await mongo.stop();
 });

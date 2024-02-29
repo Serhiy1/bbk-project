@@ -24,7 +24,7 @@ authenticationRouter.post(
   async (req: Request<never, SignupResponse, SignupRequest>, res: Response<SignupResponse>, next: NextFunction) => {
     try {
       const email = req.body.email;
-      const userName = req.body.username;
+      const companyName = req.body.companyName;
       const password = req.body.password;
 
       if (await User.AlreadyExists(email)) {
@@ -32,8 +32,8 @@ authenticationRouter.post(
       }
 
       const passwordHash = bcrypt.hashSync(password, 10);
-      const tenancy = await Tenancy.NewTenancy();
-      const user = await User.NewUser({ userName, email, passwordHash, tenancyId: tenancy._id });
+      const tenancy = await Tenancy.NewTenancy(companyName);
+      const user = await User.NewUser({ email, passwordHash, tenancyId: tenancy._id });
 
       await tenancy.save();
       await user.save();

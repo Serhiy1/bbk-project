@@ -175,7 +175,7 @@ export interface components {
              *
              */
             password: string;
-            username: string;
+            companyName: string;
         };
         SignupResponse: {
             token: string;
@@ -192,7 +192,6 @@ export interface components {
         UserResponse: {
             email: string;
             tenantID: string;
-            username: string;
         };
     };
     responses: never;

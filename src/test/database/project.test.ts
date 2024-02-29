@@ -1,20 +1,10 @@
 import { faker } from "@faker-js/faker";
-import { afterAll, beforeAll, expect, test } from "@jest/globals";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 
 import { Event } from "../../app/models/database/event";
 import { Project, ProjectDocument } from "../../app/models/database/project";
-import { connectToDatabase } from "../../app/utils/utils";
-import { CreateRandomDiff, CreateRandomEvent, CreateRandomProject } from "../utils";
-
-let mongo: MongoMemoryServer;
-
-beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  connectToDatabase(uri);
-});
+import { CreateRandomDiff, CreateRandomEvent, CreateRandomProject } from "../utils/utils";
 
 test("test NewProjectFromRequest Static Function", async () => {
   const projectinfo = CreateRandomProject();
@@ -177,8 +167,4 @@ test("project Update CustomMetaData via diff", async () => {
 
   // check that the customMetaData has been updated
   expect(JSON.stringify(customMetaDataFromDB)).toEqual(JSON.stringify(UpdatedCustomMetaData));
-});
-/* Closing database connection at the end of the suite. */
-afterAll(async () => {
-  await mongo.stop();
 });
