@@ -12,8 +12,8 @@ import { AuthRequired } from "../middleware/authentication";
 import { Event } from "../models/database/event";
 import { Project, ProjectDocument } from "../models/database/project";
 import { Tenancy, TenancyDocument } from "../models/database/tenancy";
+import { collaboratorsResponse } from "../models/types/collaborators";
 import {
-  CollaboratorsResponse,
   EventRequest,
   EventResponse,
   ProjectDiffRequest,
@@ -48,7 +48,7 @@ ProjectEventRouter.post(
       session.startTransaction();
       Promise.all([project.save(), tenancy.save()]);
       await session.commitTransaction();
-      res.status(201).send(project.ToProjectResponse());
+      res.status(201).send(await project.ToProjectResponse());
     } catch (error) {
       return next(error as Error);
     }
@@ -83,7 +83,7 @@ ProjectEventRouter.get(
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [project, _] = await FetchProjectFromRequestSafe(req, { ignoreActive: true });
-      res.status(200).send(project.ToProjectResponse());
+      res.status(200).send(await project.ToProjectResponse());
     } catch (error) {
       return next(error as Error);
     }
@@ -206,26 +206,8 @@ ProjectEventRouter.get(
 ProjectEventRouter.get(
   "/:projectID/Collaborators",
   AuthRequired,
-  (req: Request<projectId>, res: Response<CollaboratorsResponse[]>, next) => {
+  (req: Request<projectId>, res: Response<collaboratorsResponse[]>, next) => {
     next(new NotImplimentedError("Viewing current collaborators for project is not implemented"));
-  }
-);
-
-ProjectEventRouter.post(
-  "/:projectID/Collaborators",
-  AuthRequired,
-  validate(projectIDParam),
-  (req: Request<projectId, undefined, { collaborator: string }>, res: Response, next) => {
-    next(new NotImplimentedError("adding collaborators to a project is not implemented"));
-  }
-);
-
-ProjectEventRouter.delete(
-  "/:projectID/Collaborators/:collaboratorTenantId",
-  AuthRequired,
-  validate(projectIDParam),
-  (req: Request<{ projectId: string; collaboratorTenantId: string }>, res: Response, next) => {
-    next(new NotImplimentedError("removing collaborators to a project is not implemented"));
   }
 );
 

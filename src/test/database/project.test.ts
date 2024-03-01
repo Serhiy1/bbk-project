@@ -72,10 +72,10 @@ test("test ToProjectResponse Method", async () => {
   // get project from database
   const projectFromDB = await Project.findById(project._id);
 
-  expect(projectFromDB).not.toBeNull();
+  expect(projectFromDB).not.toBeUndefined();
 
   // get the project response
-  const projectResponse = (projectFromDB as ProjectDocument).ToProjectResponse();
+  const projectResponse = await (projectFromDB as ProjectDocument).ToProjectResponse();
 
   // check that the project response has the correct properties
   expect(projectResponse).toHaveProperty("projectId");
@@ -163,7 +163,7 @@ test("project Update CustomMetaData via diff", async () => {
   project.save();
 
   const projectFromDB = await Project.findById(project._id);
-  const customMetaDataFromDB = (projectFromDB as ProjectDocument).ToProjectResponse().customMetaData;
+  const customMetaDataFromDB = (await (projectFromDB as ProjectDocument).ToProjectResponse()).customMetaData;
 
   // check that the customMetaData has been updated
   expect(JSON.stringify(customMetaDataFromDB)).toEqual(JSON.stringify(UpdatedCustomMetaData));

@@ -4,157 +4,6 @@
  */
 
 export interface paths {
-    "/projects/{projectID}/Collaborators": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Viewing Current collaborators on a project */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    projectID: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of project collaborators */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["collaboratorsResponse"][];
-                    };
-                };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Project ID not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        /** Adding a Collaborator to a project */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    projectID: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** Format: uuid */
-                        collaborator: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Collaborator added to the project */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Project ID not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/projects/{projectID}/Collaborators/{collaboratorTenantId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Removing a collaborator from a project */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    projectID: string;
-                    collaboratorTenantId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Collaborator removed from the project */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Cannot remove collaborator, still present on projects */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Collaborator or Project ID not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/Projects": {
         parameters: {
             query?: never;
@@ -263,8 +112,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             projectDetails?: components["schemas"]["ProjectResponse"];
-                            diffs?: components["schemas"]["ProjectDiffResponse"][];
-                            events?: components["schemas"]["EventResponse"][];
+                            events?: (components["schemas"]["EventResponse"] | components["schemas"]["ProjectDiffResponse"])[];
                         };
                     };
                 };
@@ -495,18 +343,10 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        collaboratorsProject: {
-            projectName: string;
-            /** Format: uuid */
-            projectID: string;
-        };
-        collaboratorsResponse: {
+        ProjectCollaborator: {
             friendlyName: string;
             /** Format: uuid */
             tenantID: string;
-            /** @enum {string} */
-            status: "PENDING" | "ACTIVE";
-            projects: components["schemas"]["collaboratorsProject"][];
         };
         ProjectResponse: {
             projectName: string;
@@ -520,6 +360,7 @@ export interface components {
             projectDescription?: string;
             /** @enum {string} */
             projectStatus: "ACTIVE" | "INACTIVE";
+            ProjectCollaborators: components["schemas"]["ProjectCollaborator"][];
         };
         ProjectRequest: {
             projectName: string;
@@ -529,6 +370,26 @@ export interface components {
             customMetaData?: {
                 [key: string]: string | undefined;
             };
+            collaborators?: string[];
+        };
+        AttachmentRequest: {
+            attachmentName: string;
+            /** Format: uuid */
+            blobUuid: string;
+        };
+        EventResponse: {
+            /** Format: uuid */
+            projectId: string;
+            /** Format: uuid */
+            eventId: string;
+            /** Format: date */
+            eventDate: string;
+            eventName: string;
+            eventType: string;
+            customMetaData?: {
+                [key: string]: string | undefined;
+            };
+            attachments?: components["schemas"]["AttachmentRequest"][];
         };
         ProjectDiffResponse: {
             projectName?: {
@@ -553,25 +414,10 @@ export interface components {
                     new?: string;
                 } | undefined;
             };
-        };
-        AttachmentRequest: {
-            attachmentName: string;
-            /** Format: uuid */
-            blobUuid: string;
-        };
-        EventResponse: {
-            /** Format: uuid */
-            projectId: string;
-            /** Format: uuid */
-            eventId: string;
-            /** Format: date */
-            eventDate: string;
-            eventName: string;
-            eventType: string;
-            customMetaData?: {
-                [key: string]: string | undefined;
+            ProjectCollaborators?: {
+                old?: string[];
+                new?: string[];
             };
-            attachments?: components["schemas"]["AttachmentRequest"][];
         };
         ProjectDiffRequest: {
             projectName?: string;
@@ -581,6 +427,7 @@ export interface components {
             customMetaData?: {
                 [key: string]: string | undefined;
             };
+            collaborators?: string[];
         };
         EventRequest: {
             eventName: string;

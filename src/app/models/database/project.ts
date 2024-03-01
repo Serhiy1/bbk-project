@@ -4,12 +4,14 @@ import mongoose, { HydratedDocument, Model, model, Schema } from "mongoose";
 
 import {
   EventResponse,
+  Projectcollaborator,
   ProjectDiffRequest,
   ProjectDiffResponse,
   ProjectRequest,
   ProjectResponse,
 } from "../types/projects";
 import { Event } from "./event";
+import { RelationshipManager } from "./relationshipManager";
 
 // declare initialisation arguments
 interface IProjectArgs {
@@ -21,6 +23,7 @@ interface IProjectArgs {
   events: mongoose.Types.ObjectId[];
   Ownertenancy: mongoose.Types.ObjectId;
   diffs: ProjectDiffResponse[];
+  collaborators: mongoose.Types.ObjectId[];
 }
 
 // Declare the attributes of the model
@@ -31,9 +34,10 @@ interface IProject extends IProjectArgs {
 // Declare the methods of the model
 interface IProjectMethods {
   ListallEvents: () => Promise<EventResponse[]>;
-  ToProjectResponse: () => ProjectResponse;
+  ToProjectResponse: () => Promise<ProjectResponse>;
   IsPartOfTenancy: (tenancyId: mongoose.Types.ObjectId) => boolean;
   applyDiff: (updateRequest: ProjectDiffRequest) => ProjectDiffResponse;
+  ListProjectCollaborators: () => Promise<Projectcollaborator[]>;
   IsActive: () => boolean;
 }
 
@@ -59,6 +63,7 @@ const ProjectSchema = new Schema<IProject, IProjectModel, IProjectMethods, IProj
   events: [{ type: Schema.Types.ObjectId, ref: "Event" }],
   Ownertenancy: { type: Schema.Types.ObjectId, ref: "Tenancy", required: true },
   diffs: [{ type: Schema.Types.Mixed, required: true }],
+  collaborators: [{ type: Schema.Types.ObjectId, ref: "Collaborator" }],
 });
 
 ProjectSchema.static(
@@ -79,6 +84,7 @@ ProjectSchema.static(
       events: [],
       Ownertenancy: tenantId,
       diffs: [],
+      collaborators: projectInfo.collaborators,
     });
   }
 );
@@ -89,7 +95,7 @@ ProjectSchema.method("ListallEvents", async function ListallEvents(): Promise<Ev
   return events.map((event) => event.ToEventResponse());
 });
 
-ProjectSchema.method("ToProjectResponse", function ToProjectResponse(): ProjectResponse {
+ProjectSchema.method("ToProjectResponse", async function ToProjectResponse(): Promise<ProjectResponse> {
   const obj: ProjectResponse = {
     projectId: this._id.toString(),
     projectName: this.projectName,
@@ -97,8 +103,38 @@ ProjectSchema.method("ToProjectResponse", function ToProjectResponse(): ProjectR
     customMetaData: this.customMetaData,
     projectDescription: this.projectDescription,
     projectStatus: this.projectStatus,
+    ProjectCollaborators: await this.ListProjectCollaborators(),
   };
   return obj;
+});
+
+ProjectSchema.method("ListProjectCollaborators", async function ListProjectCollaborators(): Promise<
+  Projectcollaborator[]
+> {
+  // Get RelationshipManager object from the database
+
+  const ProjectCollaborators: Projectcollaborator[] = [];
+
+  for (const collaboratorID of this.collaborators) {
+    const relationship = await RelationshipManager.findByCollaborators(this.Ownertenancy, collaboratorID);
+    if (relationship == null) {
+      continue;
+    }
+    const info = relationship.collaberatorsInfo.get(this.Ownertenancy);
+
+    if (info == null) {
+      continue;
+    }
+
+    const collaborator: Projectcollaborator = {
+      tenantID: collaboratorID.toString(),
+      friendlyName: info.friendlyName,
+    };
+
+    ProjectCollaborators.push(collaborator);
+  }
+
+  return ProjectCollaborators;
 });
 
 ProjectSchema.method("IsPartOfTenancy", function IsPartOfTenancy(tenancyId: mongoose.Types.ObjectId): boolean {
@@ -138,6 +174,14 @@ ProjectSchema.method("applyDiff", function applyDiff(updateRequest: ProjectDiffR
       new: updateRequest.customMetaData,
     };
     this.customMetaData = updateRequest.customMetaData as { [key: string]: string };
+  }
+
+  if (updateRequest.collaborators) {
+    diff.ProjectCollaborators = {
+      old: this.collaborators.map((id) => id.toString()),
+      new: updateRequest.collaborators,
+    };
+    this.collaborators = updateRequest.collaborators.map((id) => new mongoose.Types.ObjectId(id));
   }
 
   this.diffs.push(diff);

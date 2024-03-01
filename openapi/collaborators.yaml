@@ -71,3 +71,36 @@ paths:
           description: JWT authentication required
         '404':
           description: Collaborator not found
+  /collaborators/pending:
+    get:
+      summary: Viewing pending collaborators
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: List of pending collaborators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./schemas/Response/collaboratorsResponse.yaml
+        '403':
+          description: JWT authentication required
+  /collaborators/open:
+    get:
+      summary: Viewing open collaborators
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: List of open collaborators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./schemas/Response/collaboratorsResponse.yaml
+        '403':
+          description: JWT authentication required      
+    

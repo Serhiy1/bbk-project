@@ -13,6 +13,8 @@ properties:
     type: string
   eventType:
     type: string
+  eventCreator:
+    $ref: './ProjectCollaborator.yaml'
   customMetaData:
     type: object
     additionalProperties:
@@ -22,6 +24,7 @@ properties:
     items:
       $ref: '../Request/AttachmentRequest.yaml'
 required:
+  - eventCreator
   - projectId
   - eventId
   - eventDate

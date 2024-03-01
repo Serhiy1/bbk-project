@@ -37,3 +37,16 @@ properties:
           type: string
         new:
           type: string
+  ProjectCollaborators:
+    type: object
+    properties:
+      old:
+        type: array
+        items:
+          type: string
+          format: uuid
+      new:
+        type: array
+        items:
+          type: string
+          format: uuid

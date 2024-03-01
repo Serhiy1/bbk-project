@@ -2,7 +2,7 @@ import mongoose, { HydratedDocument, Model, model, Schema } from "mongoose";
 
 import { ServerError, UserInputError } from "../../errors/errors";
 import { collaboratorsRequest, collaboratorsResponse } from "../types/collaborators";
-import { CollaboratorsResponse, ProjectResponse } from "../types/projects";
+import { ProjectResponse } from "../types/projects";
 import { Project } from "./project";
 import { RelationshipManager } from "./relationshipManager";
 
@@ -23,7 +23,7 @@ interface ITenancyMethods {
   ListPendingInvites: () => Promise<collaboratorsResponse[]>;
   AddCollaborator: (collaboratorTenancy: collaboratorsRequest) => Promise<collaboratorsResponse>;
   removeCollaborator: (collaboratorTenancy: mongoose.Types.ObjectId) => Promise<void>;
-  findCollaborator: (collaboratorTenancy: mongoose.Types.ObjectId) => Promise<CollaboratorsResponse>;
+  findCollaborator: (collaboratorTenancy: mongoose.Types.ObjectId) => Promise<collaboratorsResponse>;
 }
 
 // Declare the byEmail Query helper
@@ -46,12 +46,14 @@ const TenancySchema = new Schema<ITenancy, ITenancyModel, ITenancyMethods>({
   relationships: [{ type: Schema.Types.ObjectId, ref: RelationshipManager }],
 });
 
-TenancySchema.static("NewTenancy", async function NewTenancy(companyName: string): Promise<HydratedDocument<ITenancy, ITenancyMethods>> {
+TenancySchema.static("NewTenancy", async function NewTenancy(companyName: string): Promise<
+  HydratedDocument<ITenancy, ITenancyMethods>
+> {
   return this.create({
     _id: new mongoose.Types.ObjectId(),
     projects: [],
     relationships: [],
-    companyName: companyName
+    companyName: companyName,
   });
 });
 
@@ -63,7 +65,7 @@ TenancySchema.method("ListProjects", async function ListProjects(): Promise<Proj
   const projectResponses: ProjectResponse[] = [];
 
   for (const project of projects) {
-    projectResponses.push(project.ToProjectResponse());
+    projectResponses.push(await project.ToProjectResponse());
   }
 
   return projectResponses;
@@ -131,7 +133,7 @@ TenancySchema.method("ListOpenInvites", async function ListOpenInvites(): Promis
 
 TenancySchema.method(
   "AddCollaborator",
-  async function AddCollaborator(collaberatorRequest: collaboratorsRequest): Promise<CollaboratorsResponse> {
+  async function AddCollaborator(collaberatorRequest: collaboratorsRequest): Promise<collaboratorsResponse> {
     const otherTenancy = await Tenancy.findById(collaberatorRequest.tenantID);
 
     if (!otherTenancy) {
@@ -188,7 +190,7 @@ TenancySchema.method(
 
 TenancySchema.method(
   "findCollaborator",
-  async function findCollaborator(collaboratorTenancy: mongoose.Types.ObjectId): Promise<CollaboratorsResponse> {
+  async function findCollaborator(collaboratorTenancy: mongoose.Types.ObjectId): Promise<collaboratorsResponse> {
     const relationship = await RelationshipManager.findByCollaborators(this._id, collaboratorTenancy);
 
     if (relationship == null) {

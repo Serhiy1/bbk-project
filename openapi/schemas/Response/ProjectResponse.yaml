@@ -21,11 +21,13 @@ properties:
     enum:
       - ACTIVE
       - INACTIVE
+  ProjectCollaborators:
+    type: array
+    items:
+      $ref: './ProjectCollaborator.yaml'    
 required:
-- projectId
-- startedDate
-- projectName
-- projectStatus
-- ProjectResponse
-
-  
+  - projectId
+  - startedDate
+  - projectName
+  - projectStatus
+  - ProjectCollaborators
