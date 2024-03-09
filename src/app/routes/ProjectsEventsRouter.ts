@@ -35,19 +35,13 @@ ProjectEventRouter.post(
   validate(createProject),
   async (req: Request<never, ProjectResponse, ProjectRequest>, res: Response<ProjectResponse>, next: NextFunction) => {
     try {
-      const session = await mongoose.startSession();
       const token = DecodeTokenFromHeader(req);
       const tenancy = await Tenancy.findById(token.tenancyId);
 
       if (tenancy === null) {
         return next(new ServerError("Tenancy is Not found"));
       }
-
-      const project = await Project.NewProjectFromRequest(req.body, tenancy._id);
-      tenancy.projects.push(project._id);
-      session.startTransaction();
-      Promise.all([project.save(), tenancy.save()]);
-      await session.commitTransaction();
+      const project = await Project.NewProjectFromRequest(req.body, tenancy);
       res.status(201).send(await project.ToProjectResponse());
     } catch (error) {
       return next(error as Error);
@@ -101,16 +95,18 @@ ProjectEventRouter.patch(
     next: NextFunction
   ) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [project, _] = await FetchProjectFromRequestSafe(req, { ignoreActive: true });
+      const [project, tenancy] = await FetchProjectFromRequestSafe(req, { ignoreActive: true });
 
       // check if the project is active, if project is not active and the request is not to activate it, return error
-      if (!project.IsActive() && req.body.projectStatus !== "ACTIVE") {
-        return next(new UserInputError("Project is not active"));
+      if (!project.IsActive(tenancy) && req.body.projectStatus !== "ACTIVE") {
+        return next(new UserInputError("Project is not active or you are no longer an active collaborator"));
       }
 
-      const diff = project.applyDiff(req.body);
-      await project.save();
+      if (!project.IsOwner(tenancy)) {
+        return next(new UserInputError("Only the Owner can update the project details"));
+      }
+
+      const diff = await project.createDiff(req.body, tenancy);
       res.status(200).send(diff);
     } catch (error) {
       return next(error as Error);
@@ -142,17 +138,11 @@ ProjectEventRouter.post(
   validate(createEvent),
   async (req: Request<projectId, EventResponse, EventRequest>, res: Response<EventResponse>, next: NextFunction) => {
     try {
-      const session = await mongoose.startSession();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [project, _] = await FetchProjectFromRequestSafe(req);
-      const event = await Event.NewEventFromRequest(req.body, project._id);
-      project.events.push(event._id);
+      const [project, tenant] = await FetchProjectFromRequestSafe(req);
+      const event = await Event.NewEventFromRequest(req.body, project, tenant);
 
-      session.startTransaction();
-      Promise.all([event.save(), project.save()]);
-      await session.commitTransaction();
-
-      return res.status(201).send(event.ToEventResponse());
+      return res.status(201).send(await event.ToEventResponse());
     } catch (error) {
       return next(error as Error);
     }
@@ -186,13 +176,15 @@ ProjectEventRouter.get(
   async (req: Request<{ projectId: string; eventId: string }>, res: Response<EventResponse>, next: NextFunction) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [project, _] = await FetchProjectFromRequestSafe(req);
+      const [project, _] = await FetchProjectFromRequestSafe(req, { ignoreActive: true });
       const event = await Event.findById(req.params.eventId);
+
       if (event === null) {
         return next(new NotFoundError("Event not found"));
       }
-      if (event.IspartOfProject(project._id)) {
-        return res.status(200).send(event.ToEventResponse());
+
+      if (await event.IspartOfProject(project)) {
+        return res.status(200).send(await event.ToEventResponse());
       } else {
         return next(new NotFoundError("Event not found"));
       }
@@ -226,18 +218,13 @@ async function FetchProjectFromRequestSafe(
     throw new ServerError("Tenancy is Not found");
   }
 
-  const presentInTenancy = await tenancy.AssertProjectInTenancy(new mongoose.Types.ObjectId(req.params.projectId));
-  if (!presentInTenancy) {
+  const project = await Project.FindByProjectId(new mongoose.Types.ObjectId(req.params.projectId), tenancy);
+  if (project === null) {
     throw new NotFoundError("Project not found");
   }
 
-  const project = await Project.findById(req.params.projectId);
-  if (project === null) {
-    throw new ServerError("Project Reference Found in tenancy record but not found in the project collection");
-  }
-
-  if (!project.IsActive() && !opts.ignoreActive) {
-    throw new UserInputError("Project is not active");
+  if (!project.IsActive(tenancy) && !opts.ignoreActive) {
+    throw new UserInputError("Project is not active or you are no longer an active collaborator");
   }
 
   return [project, tenancy];

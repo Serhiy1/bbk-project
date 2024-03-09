@@ -386,6 +386,7 @@ export interface components {
             eventDate: string;
             eventName: string;
             eventType: string;
+            eventCreator: components["schemas"]["ProjectCollaborator"];
             customMetaData?: {
                 [key: string]: string | undefined;
             };

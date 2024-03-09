@@ -7,5 +7,5 @@ export type AttachmentRequest = components["schemas"]["AttachmentRequest"];
 export type EventResponse = components["schemas"]["EventResponse"];
 export type ProjectDiffRequest = components["schemas"]["ProjectDiffRequest"];
 export type EventRequest = components["schemas"]["EventRequest"];
-export type Projectcollaborator = components["schemas"]["ProjectCollaborator"];
+export type ProjectCollaborator = components["schemas"]["ProjectCollaborator"];
 export type projectId = { projectId: string };

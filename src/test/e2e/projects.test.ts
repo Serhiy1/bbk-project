@@ -10,13 +10,19 @@ import {
   ProjectDiffResponse,
   ProjectResponse,
 } from "../../app/models/types/projects";
-import { CreateOverrideDiff, CreateRandomEvent, CreateRandomProject, Person, SignupPerson } from "../utils/utils";
+import {
+  CreateOverrideDiffRequest,
+  CreateRandomEventRequest,
+  CreateRandomProjectRequest,
+  Person,
+  SignupPerson,
+} from "../utils/utils";
 
 // Describe positive tests
 describe("Positive Tests", () => {
   const personInfo = new Person();
   let personToken: string;
-  const FirstProjectinfo = CreateRandomProject();
+  const FirstProjectinfo = CreateRandomProjectRequest();
   let firstProjectID: string;
   let firstEventID: string;
 
@@ -73,7 +79,7 @@ describe("Positive Tests", () => {
 
   test("Updating a project by ID responds 200", async () => {
     // create new project to avoid test interference
-    const newProjectInfo = CreateRandomProject();
+    const newProjectInfo = CreateRandomProjectRequest();
     const res = await request(app).post("/projects").send(newProjectInfo).set("Authorization", `Bearer ${personToken}`);
 
     expect(res.statusCode).toBe(201);
@@ -82,7 +88,7 @@ describe("Positive Tests", () => {
     const ProjectID = body.projectId;
 
     // generate the override Diff
-    const diff = CreateOverrideDiff(res.body);
+    const diff = CreateOverrideDiffRequest(res.body);
     const res2 = await request(app)
       .patch(`/Projects/${ProjectID}`)
       .send(diff)
@@ -114,7 +120,7 @@ describe("Positive Tests", () => {
   });
 
   test("Creating a new event for a project responds 200", async () => {
-    const eventinfo = CreateRandomEvent();
+    const eventinfo = CreateRandomEventRequest();
     const res = await request(app)
       .post(`/Projects/${firstProjectID}/events`)
       .send(eventinfo)
@@ -183,7 +189,7 @@ describe("Positive Tests", () => {
     const person = new Person();
     const token = await SignupPerson(person, app);
 
-    const projectinfo = CreateRandomProject();
+    const projectinfo = CreateRandomProjectRequest();
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
 
@@ -217,7 +223,7 @@ describe("Positive Tests", () => {
   });
 
   test("Create a new event for an INACTIVE project responds 400", async () => {
-    const eventinfo = CreateRandomEvent();
+    const eventinfo = CreateRandomEventRequest();
     const res = await request(app)
       .post(`/Projects/${firstProjectID}/events`)
       .send(eventinfo)
@@ -244,7 +250,7 @@ describe("Positive Tests", () => {
 
     expect(updated_res_body).toHaveProperty("projectStatus", "ACTIVE");
 
-    const eventinfo = CreateRandomEvent();
+    const eventinfo = CreateRandomEventRequest();
     const res3 = await request(app)
       .post(`/Projects/${firstProjectID}/events`)
       .send(eventinfo)
@@ -267,7 +273,7 @@ describe("Project Input Validation", () => {
   });
 
   test("patching an inactive project should respond with 400", async () => {
-    const projectinfo = CreateRandomProject();
+    const projectinfo = CreateRandomProjectRequest();
     const person = new Person();
     const token = await SignupPerson(person, app);
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
@@ -322,7 +328,7 @@ describe("Project Input Validation", () => {
   });
 
   test("updating a project with non string value in customMetaData should respond with 400", async () => {
-    const projectinfo = CreateRandomProject();
+    const projectinfo = CreateRandomProjectRequest();
     const person = new Person();
     const token = await SignupPerson(person, app);
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
@@ -364,7 +370,7 @@ describe("Project Input Validation", () => {
     const token = await SignupPerson(person, app);
     const res = await request(app)
       .post("/projects")
-      .send(CreateRandomProject())
+      .send(CreateRandomProjectRequest())
       .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
 
@@ -378,7 +384,7 @@ describe("Project Input Validation", () => {
   test("Get event with Non UUID project ID Paramater should respond with 400", async () => {
     const person = new Person();
     const token = await SignupPerson(person, app);
-    const projectinfo = CreateRandomProject();
+    const projectinfo = CreateRandomProjectRequest();
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
 
@@ -392,7 +398,7 @@ describe("Project Input Validation", () => {
   test("Get event with non-existing event ID Paramater should respond with 404", async () => {
     const person = new Person();
     const token = await SignupPerson(person, app);
-    const projectinfo = CreateRandomProject();
+    const projectinfo = CreateRandomProjectRequest();
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
 
@@ -403,17 +409,35 @@ describe("Project Input Validation", () => {
     expect(res2.body.message).toBe("Event not found");
   });
 
-  //      Test 12 - Getting a event from a different tenant should respond with 404
+  // get a real event but on a different project results in a 404 resopnse
+  test("Get event from a different project on same tenancy should respond with 404", async () => {
+    const person = new Person();
+    const token = await SignupPerson(person, app);
+    const projectinfo = CreateRandomProjectRequest();
+    const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
+    expect(res.statusCode).toBe(201);
+    const eventinfo = CreateRandomEventRequest();
+    const res2 = await request(app)
+      .post(`/Projects/${res.body.projectId}/events`)
+      .send(eventinfo)
+      .set("Authorization", `Bearer ${token}`);
+    expect(res2.statusCode).toBe(201);
+
+    const res4 = await request(app)
+      .get(`/Projects/${new mongoose.Types.ObjectId()}/events/${res2.body.eventId}`)
+      .set("Authorization", `Bearer ${token}`);
+    expect(res4.statusCode).toBe(404);
+  });
 
   test("Get event from a different project on same tenancy should respond with 404", async () => {
     const person = new Person();
     const token = await SignupPerson(person, app);
-    const projectinfo = CreateRandomProject();
+    const projectinfo = CreateRandomProjectRequest();
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
 
     // create event on project
-    const eventinfo = CreateRandomEvent();
+    const eventinfo = CreateRandomEventRequest();
     const res2 = await request(app)
       .post(`/Projects/${res.body.projectId}/events`)
       .send(eventinfo)
@@ -421,7 +445,7 @@ describe("Project Input Validation", () => {
     expect(res2.statusCode).toBe(201);
 
     // Create second project
-    const projectinfo2 = CreateRandomProject();
+    const projectinfo2 = CreateRandomProjectRequest();
     const res3 = await request(app).post("/projects").send(projectinfo2).set("Authorization", `Bearer ${token}`);
     expect(res3.statusCode).toBe(201);
 
@@ -435,12 +459,12 @@ describe("Project Input Validation", () => {
   test("Get event from a different tenant should respond with 404", async () => {
     const person = new Person();
     const token = await SignupPerson(person, app);
-    const projectinfo = CreateRandomProject();
+    const projectinfo = CreateRandomProjectRequest();
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
 
     // create event on project
-    const eventinfo = CreateRandomEvent();
+    const eventinfo = CreateRandomEventRequest();
     const res2 = await request(app)
       .post(`/Projects/${res.body.projectId}/events`)
       .send(eventinfo)
@@ -463,12 +487,12 @@ describe("Authentication Tests", () => {
   beforeAll(async () => {
     const person = new Person();
     const token = await SignupPerson(person, app);
-    const projectinfo = CreateRandomProject();
+    const projectinfo = CreateRandomProjectRequest();
     const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(201);
     realProjectID = res.body.projectId;
 
-    const eventinfo = CreateRandomEvent();
+    const eventinfo = CreateRandomEventRequest();
     const res2 = await request(app)
       .post(`/Projects/${realProjectID}/events`)
       .send(eventinfo)
@@ -478,13 +502,13 @@ describe("Authentication Tests", () => {
   });
 
   test("Create a new project without authentication should respond with 403", async () => {
-    const projectinfo = CreateRandomProject();
+    const projectinfo = CreateRandomProjectRequest();
     const res = await request(app).post("/projects").send(projectinfo);
     expect(res.statusCode).toBe(403);
   });
 
   test("Create a new event without authentication should respond with 403", async () => {
-    const eventinfo = CreateRandomEvent();
+    const eventinfo = CreateRandomEventRequest();
     const res = await request(app).post(`/Projects/${realProjectID}/events`).send(eventinfo);
     expect(res.statusCode).toBe(403);
   });

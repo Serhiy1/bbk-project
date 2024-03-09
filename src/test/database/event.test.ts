@@ -1,14 +1,15 @@
 import { expect, test } from "@jest/globals";
-import mongoose from "mongoose";
 
 import { Event, EventDocument } from "../../app/models/database/event";
-import { CreateRandomEvent } from "../utils/utils";
+import { Project } from "../../app/models/database/project";
+import { CreateRandomEventRequest, CreateRandomProjectRequest, CreateRandomTenancy } from "../utils/utils";
 
 test("test NewEventFromRequest Static Function", async () => {
-  const eventdata = CreateRandomEvent();
-  const projectID = new mongoose.Types.ObjectId();
+  const tenancy = await CreateRandomTenancy();
+  const project = await Project.NewProjectFromRequest(CreateRandomProjectRequest(), tenancy);
+  const eventdata = CreateRandomEventRequest();
 
-  const event = await Event.NewEventFromRequest(eventdata, projectID);
+  const event = await Event.NewEventFromRequest(eventdata, project, tenancy);
   await event.save();
 
   // get the event from the database via id
@@ -23,14 +24,15 @@ test("test NewEventFromRequest Static Function", async () => {
   expect(eventFromDB).toHaveProperty("eventType", eventdata.eventType);
   expect(eventFromDB).toHaveProperty("customMetaData");
   expect(eventFromDB).toHaveProperty("attachments");
-  expect(eventFromDB).toHaveProperty("projectId", projectID);
+  expect(eventFromDB).toHaveProperty("projectId", project.ProjectId);
 });
 
 test("ToEventResponse Method", async () => {
-  const eventdata = CreateRandomEvent();
-  const projectID = new mongoose.Types.ObjectId();
+  const eventdata = CreateRandomEventRequest();
+  const tenancy = await CreateRandomTenancy();
+  const project = await Project.NewProjectFromRequest(CreateRandomProjectRequest(), tenancy);
 
-  const event = await Event.NewEventFromRequest(eventdata, projectID);
+  const event = await Event.NewEventFromRequest(eventdata, project, tenancy);
   await event.save();
 
   // get the event from the database via id
@@ -40,10 +42,10 @@ test("ToEventResponse Method", async () => {
   expect(eventFromDB).not.toBeNull();
 
   // assert that the event has the correct properties
-  const eventResponse = (eventFromDB as EventDocument).ToEventResponse();
+  const eventResponse = await (eventFromDB as EventDocument).ToEventResponse();
   expect(eventResponse).toHaveProperty("eventDate");
   expect(eventResponse).toHaveProperty("eventName", eventdata.eventName);
   expect(eventResponse).toHaveProperty("eventType", eventdata.eventType);
   expect(eventResponse).toHaveProperty("customMetaData");
-  expect(eventResponse).toHaveProperty("projectId", projectID.toString());
+  expect(eventResponse).toHaveProperty("projectId", project.ProjectId.toString());
 });
