@@ -1,0 +1,10 @@
+type: object
+properties:
+  friendlyName:
+    type: string
+  tenantID:
+    type: string
+    format: uuid
+required:
+  - friendlyName
+  - tenantID

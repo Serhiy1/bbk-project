@@ -3,6 +3,7 @@ import { expect } from "@jest/globals";
 import { Express } from "express";
 import request from "supertest";
 
+import { Tenancy, TenancyDocument } from "../../app/models/database/tenancy";
 import { SignupRequest } from "../../app/models/types/authentications";
 import { ProjectDiffRequest, ProjectRequest, ProjectResponse } from "../../app/models/types/projects";
 import { EventRequest } from "../../app/models/types/projects";
@@ -40,7 +41,7 @@ export async function SignupPerson(person: Person, app: Express): Promise<string
 }
 
 // Create A new Random Project object using faker
-export function CreateRandomProject(): ProjectRequest {
+export function CreateRandomProjectRequest(): ProjectRequest {
   return {
     projectName: faker.lorem.words(3),
     projectDescription: faker.lorem.sentence(),
@@ -50,11 +51,12 @@ export function CreateRandomProject(): ProjectRequest {
       [faker.lorem.word()]: faker.lorem.word(),
       [faker.lorem.word()]: faker.lorem.word(),
     },
+    collaborators: [],
   };
 }
 
 // Create A new Random Event object using faker
-export function CreateRandomEvent(): EventRequest {
+export function CreateRandomEventRequest(): EventRequest {
   return {
     eventName: faker.lorem.words(3),
     eventType: "INFO",
@@ -67,7 +69,7 @@ export function CreateRandomEvent(): EventRequest {
 }
 
 // Create a random Diff object
-export function CreateRandomDiff(): ProjectDiffRequest {
+export function CreateRandomDiffRequest(): ProjectDiffRequest {
   return {
     projectName: faker.lorem.words(3),
     projectDescription: faker.lorem.sentence(),
@@ -75,7 +77,7 @@ export function CreateRandomDiff(): ProjectDiffRequest {
 }
 
 // create a a diff that overrides all the passed in properties
-export function CreateOverrideDiff(project: ProjectResponse): ProjectDiffRequest {
+export function CreateOverrideDiffRequest(project: ProjectResponse): ProjectDiffRequest {
   // update name, description and customMetaData
   // loop over the existing customMetaData and update the values
   const UpdatedCustomMetaData: Record<string, string> = {};
@@ -88,4 +90,11 @@ export function CreateOverrideDiff(project: ProjectResponse): ProjectDiffRequest
     projectDescription: faker.lorem.sentence(),
     customMetaData: UpdatedCustomMetaData,
   };
+}
+
+export async function CreateRandomTenancy(): Promise<TenancyDocument> {
+  const companyName = faker.company.name();
+  const tenancy = await Tenancy.NewTenancy(companyName);
+  await tenancy.save();
+  return tenancy;
 }

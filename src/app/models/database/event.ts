@@ -1,15 +1,19 @@
 import mongoose, { HydratedDocument, model, Schema } from "mongoose";
 
 import { EventRequest, EventResponse } from "../types/projects";
+import { Project, ProjectDocument } from "./project";
+import { Tenancy, TenancyDocument } from "./tenancy";
 
 interface IEventArgs {
-  _Id: mongoose.Types.ObjectId;
+  _id: mongoose.Types.ObjectId;
   projectId: mongoose.Types.ObjectId;
   eventDate: Date;
   eventName: string;
   eventType: string;
   customMetaData: { [key: string]: string };
   attachments: mongoose.Types.ObjectId[];
+  // Can be owner or collaborator
+  eventCreator: mongoose.Types.ObjectId;
 }
 
 interface IEvent extends IEventArgs {
@@ -17,8 +21,9 @@ interface IEvent extends IEventArgs {
 }
 
 interface IEventMethods {
-  ToEventResponse: () => EventResponse;
-  IspartOfProject: (projectId: mongoose.Types.ObjectId) => boolean;
+  ToEventResponse: () => Promise<EventResponse>;
+  IspartOfProject: (projectId: ProjectDocument) => Promise<boolean>;
+  IsVisibleToCollaborator: (collaboratorId: mongoose.Types.ObjectId) => boolean;
 }
 
 interface IEvenntQueryHelpers {}
@@ -26,7 +31,11 @@ interface IEvenntQueryHelpers {}
 export type EventDocument = HydratedDocument<IEvent, IEventMethods>;
 
 interface IEventModel extends mongoose.Model<IEvent, IEvenntQueryHelpers, IEventMethods> {
-  NewEventFromRequest: (eventInfo: EventRequest, projectId: mongoose.Types.ObjectId) => Promise<EventDocument>;
+  NewEventFromRequest: (
+    eventInfo: EventRequest,
+    projectId: ProjectDocument,
+    tenant: TenancyDocument
+  ) => Promise<EventDocument>;
 }
 
 const EventSchema = new Schema<IEvent, IEventModel>({
@@ -37,28 +46,62 @@ const EventSchema = new Schema<IEvent, IEventModel>({
   eventType: { type: String, required: true },
   customMetaData: { type: Map, of: String },
   attachments: [{ type: Schema.Types.ObjectId, ref: "Attachment" }],
+  eventCreator: { type: Schema.Types.ObjectId, required: true },
 });
 
 EventSchema.static(
   "NewEventFromRequest",
   async function NewEventFromRequest(
     eventInfo: EventRequest,
-    projectId: mongoose.Types.ObjectId
+    project: ProjectDocument,
+    tenant: TenancyDocument
   ): Promise<EventDocument> {
     const customMetaData = (eventInfo?.customMetaData as { [key: string]: string }) || {};
-    return this.create({
+
+    const eventObj: IEvent = {
       _id: new mongoose.Types.ObjectId(),
-      projectId: projectId,
+      projectId: project.ProjectId,
       eventDate: new Date(),
       eventName: eventInfo.eventName,
       eventType: eventInfo.eventType,
       customMetaData: customMetaData,
       attachments: [],
+      eventCreator: tenant._id,
+    };
+
+    const event = await this.create(eventObj);
+
+    // Prepare promises for updating all collaborators in parallel
+    const updatePromises = project.collaborators.map(async (collaboratorId) => {
+      const tenancy = await Tenancy.findById(collaboratorId);
+      if (tenancy === null) {
+        return null; // Skip this collaborator if not found
+      }
+
+      const projectToUpdate = await Project.FindByProjectId(project.ProjectId, tenancy);
+      if (projectToUpdate === null) {
+        return null; // Skip if the project is not found for this tenancy
+      }
+
+      projectToUpdate.events.push(eventObj._id);
+      await projectToUpdate.save(); // Save the updated project document
     });
+
+    // Execute all update operations in parallel
+    await Promise.all(updatePromises);
+    return event;
   }
 );
 
-EventSchema.method("ToEventResponse", function ToEventResponse(): EventResponse {
+EventSchema.method("ToEventResponse", async function ToEventResponse(): Promise<EventResponse> {
+  const tenancy = await Tenancy.findById(this.eventCreator);
+  let tenancyInfo: { friendlyName: string; tenantID: string };
+  if (tenancy === null) {
+    tenancyInfo = { friendlyName: "Unknown", tenantID: "Unknown" };
+  } else {
+    tenancyInfo = tenancy.toProjectCollaboratorResponse();
+  }
+
   const obj: EventResponse = {
     eventId: this._id.toString(),
     projectId: this.projectId.toString(),
@@ -66,12 +109,18 @@ EventSchema.method("ToEventResponse", function ToEventResponse(): EventResponse 
     eventName: this.eventName,
     eventType: this.eventType,
     customMetaData: this.customMetaData,
+    eventCreator: tenancyInfo,
   };
   return obj;
 });
 
-EventSchema.method("IspartOfProject", function IspartOfProject(projectId: mongoose.Types.ObjectId): boolean {
-  return this.projectId.equals(projectId);
+EventSchema.method("IspartOfProject", async function IspartOfProject(project: ProjectDocument): Promise<boolean> {
+  const IspartOfProject = project.events.includes(this._id);
+  if (!IspartOfProject) {
+    return false;
+  }
+
+  return true;
 });
 
 export const Event = model<IEvent, IEventModel>("Event", EventSchema);

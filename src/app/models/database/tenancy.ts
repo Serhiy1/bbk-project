@@ -2,7 +2,7 @@ import mongoose, { HydratedDocument, Model, model, Schema } from "mongoose";
 
 import { ServerError, UserInputError } from "../../errors/errors";
 import { collaboratorsRequest, collaboratorsResponse } from "../types/collaborators";
-import { CollaboratorsResponse, ProjectResponse } from "../types/projects";
+import { ProjectCollaborator, ProjectResponse } from "../types/projects";
 import { Project } from "./project";
 import { RelationshipManager } from "./relationshipManager";
 
@@ -23,7 +23,9 @@ interface ITenancyMethods {
   ListPendingInvites: () => Promise<collaboratorsResponse[]>;
   AddCollaborator: (collaboratorTenancy: collaboratorsRequest) => Promise<collaboratorsResponse>;
   removeCollaborator: (collaboratorTenancy: mongoose.Types.ObjectId) => Promise<void>;
-  findCollaborator: (collaboratorTenancy: mongoose.Types.ObjectId) => Promise<CollaboratorsResponse>;
+  findCollaborator: (collaboratorTenancy: mongoose.Types.ObjectId) => Promise<collaboratorsResponse>;
+  CheckCollaboratorsAreActive: (collaborators: mongoose.Types.ObjectId[]) => Promise<boolean>;
+  toProjectCollaboratorResponse: () => ProjectCollaborator;
 }
 
 // Declare the byEmail Query helper
@@ -35,7 +37,7 @@ export type TenancyDocument = HydratedDocument<ITenancy, ITenancyMethods>;
 
 // declare the Full Model along with any static methods
 export interface ITenancyModel extends Model<ITenancy, ITenancyQueryHelpers, ITenancyMethods> {
-  NewTenancy: (companyName: string) => Promise<HydratedDocument<ITenancy, ITenancyMethods>>;
+  NewTenancy: (companyName: string) => Promise<TenancyDocument>;
 }
 
 // Create the schema
@@ -46,24 +48,31 @@ const TenancySchema = new Schema<ITenancy, ITenancyModel, ITenancyMethods>({
   relationships: [{ type: Schema.Types.ObjectId, ref: RelationshipManager }],
 });
 
-TenancySchema.static("NewTenancy", async function NewTenancy(companyName: string): Promise<HydratedDocument<ITenancy, ITenancyMethods>> {
+TenancySchema.static("NewTenancy", async function NewTenancy(companyName: string): Promise<TenancyDocument> {
   return this.create({
     _id: new mongoose.Types.ObjectId(),
     projects: [],
     relationships: [],
-    companyName: companyName
+    companyName: companyName,
   });
 });
 
 TenancySchema.method("ListProjects", async function ListProjects(): Promise<ProjectResponse[]> {
-  const projectIDs = this.projects;
-
   // call toObject to convert the Mongoose Document to a plain JS object
-  const projects = await Project.find({ _id: { $in: projectIDs } });
+  const FindProjectPromises = this.projects.map(async (projectId) => {
+    const project = await Project.FindByProjectId(projectId, this);
+    if (project == null) {
+      throw new ServerError("Project not found");
+    }
+    return project;
+  });
+
+  const projects = await Promise.all(FindProjectPromises);
+
   const projectResponses: ProjectResponse[] = [];
 
   for (const project of projects) {
-    projectResponses.push(project.ToProjectResponse());
+    projectResponses.push(await project.ToProjectResponse());
   }
 
   return projectResponses;
@@ -87,6 +96,27 @@ TenancySchema.method("listActiveCollaborators", async function listActiveCollabo
 
   return activeCollaborators;
 });
+
+TenancySchema.method(
+  "CheckCollaboratorsAreActive",
+  async function CheckCollaboratorsAreActive(collaborators: mongoose.Types.ObjectId[]) {
+    // Create a copy of the project for each new collaborator, while also checking
+    const CheckPromises = collaborators.map(async (tenancyId) => {
+      // Check if there is an active relationship between the collaborator and the project
+      const relationship = await RelationshipManager.findByCollaborators(this._id, tenancyId);
+
+      if (relationship === null) {
+        throw new UserInputError(`Tenancy ${tenancyId} has not been added as a collaborator`);
+      }
+
+      if (relationship.status() !== "ACTIVE") {
+        throw new UserInputError(`Tenancy ${tenancyId} has not accepted as a collaborator`);
+      }
+    });
+
+    await Promise.all(CheckPromises);
+  }
+);
 
 /* Lists the invites the tenancy has sent but not yet accepted */
 TenancySchema.method("ListPendingInvites", async function ListPendingInvites(): Promise<collaboratorsResponse[]> {
@@ -131,7 +161,7 @@ TenancySchema.method("ListOpenInvites", async function ListOpenInvites(): Promis
 
 TenancySchema.method(
   "AddCollaborator",
-  async function AddCollaborator(collaberatorRequest: collaboratorsRequest): Promise<CollaboratorsResponse> {
+  async function AddCollaborator(collaberatorRequest: collaboratorsRequest): Promise<collaboratorsResponse> {
     const otherTenancy = await Tenancy.findById(collaberatorRequest.tenantID);
 
     if (!otherTenancy) {
@@ -179,6 +209,38 @@ TenancySchema.method(
       throw new ServerError("unknown collaborator");
     }
 
+    // Check for any active projects
+    const checkPromises = this.projects.map(async (projectId) => {
+      // find all projects that are with the collaborator
+      const collaberator = await Tenancy.findById(collaboratorTenancy);
+      if (collaberator == null) {
+        return;
+      }
+      const project = await Project.FindByProjectId(projectId, collaberator);
+      if (project == null) {
+        return;
+      }
+
+      // if the the current tenant is the owner of the project, check that the collaborator is not active on the project
+      if (project.OwnerTenancy.equals(this._id)) {
+        if (project.collaborators.includes(collaboratorTenancy)) {
+          throw new UserInputError(
+            `collaborator is still active on project ${project.projectName}, id ${project.ProjectId}`
+          );
+        }
+        return;
+      }
+
+      // else check that the current tenant is not active on the project
+      if (project.collaborators.includes(this._id)) {
+        throw new UserInputError(
+          `you are still active on project ${project.projectName}, id ${project.ProjectId}, contact the owner to remove you`
+        );
+      }
+    });
+
+    await Promise.all(checkPromises);
+
     collaberatorInfo.accepted = false;
 
     relationship.markModified("collaberatorsInfo");
@@ -188,7 +250,7 @@ TenancySchema.method(
 
 TenancySchema.method(
   "findCollaborator",
-  async function findCollaborator(collaboratorTenancy: mongoose.Types.ObjectId): Promise<CollaboratorsResponse> {
+  async function findCollaborator(collaboratorTenancy: mongoose.Types.ObjectId): Promise<collaboratorsResponse> {
     const relationship = await RelationshipManager.findByCollaborators(this._id, collaboratorTenancy);
 
     if (relationship == null) {
@@ -205,5 +267,12 @@ TenancySchema.method(
     return this.projects.includes(projectId);
   }
 );
+
+TenancySchema.method("toProjectCollaboratorResponse", function toProjectCollaboratorResponse(): ProjectCollaborator {
+  return {
+    tenantID: this._id.toString(),
+    friendlyName: this.companyName,
+  };
+});
 
 export const Tenancy = model<ITenancy, ITenancyModel>("Tenancy", TenancySchema);

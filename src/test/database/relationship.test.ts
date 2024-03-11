@@ -33,13 +33,13 @@ test("test newRelationship Static Function", async () => {
 test("test findByCollaborators Static Function", async () => {
   const tenantID = new mongoose.Types.ObjectId();
   const company = faker.company.name();
-  
+
   const request: collaboratorsRequest = {
     tenantID: new mongoose.Types.ObjectId().toString(),
     friendlyName: "test",
   };
 
-  const relationship = await RelationshipManager.newRelationship(tenantID,company, request);
+  const relationship = await RelationshipManager.newRelationship(tenantID, company, request);
   await relationship.save();
 
   const relationshipFromDB = await RelationshipManager.findByCollaborators(
@@ -54,7 +54,7 @@ test("test findByCollaborators Static Function", async () => {
 test("test findByCollaborators Static Function, where the relationship does not exist", async () => {
   const tenantID = new mongoose.Types.ObjectId();
   const company = faker.company.name();
-  
+
   const request: collaboratorsRequest = {
     tenantID: new mongoose.Types.ObjectId().toString(),
     friendlyName: "test",
@@ -83,7 +83,7 @@ describe("test status and acceptInvite methods", () => {
       friendlyName: "test",
     };
 
-    relationshipManager = await RelationshipManager.newRelationship(tenantIDOne,company, request);
+    relationshipManager = await RelationshipManager.newRelationship(tenantIDOne, company, request);
     await relationshipManager.save();
 
     const relationshipFromDB = await RelationshipManager.findById(relationshipManager._id);
@@ -118,19 +118,23 @@ describe("test status and acceptInvite methods", () => {
 describe("test find by collaberator Hash method", () => {
   const tenantIDOne = new mongoose.Types.ObjectId();
   const companyOne = faker.company.name();
-  
+
   const tenantIDTwo = new mongoose.Types.ObjectId();
   const companyTwo = faker.company.name();
-  
+
   const tenantIDThree = new mongoose.Types.ObjectId();
-  
+
   const tenantIDFour = new mongoose.Types.ObjectId();
   let RelationshipOnetoTwo: relationshipManagerDocument;
   let RelationshipThreeToFour: relationshipManagerDocument;
 
   // convert the declarations above into a beforeall function
   beforeAll(async () => {
-    RelationshipOnetoTwo = await RelationshipManager.newRelationship(tenantIDOne, companyOne, newCollaboratorRequest(tenantIDTwo));
+    RelationshipOnetoTwo = await RelationshipManager.newRelationship(
+      tenantIDOne,
+      companyOne,
+      newCollaboratorRequest(tenantIDTwo)
+    );
     await RelationshipOnetoTwo.acceptInvite(tenantIDTwo, newCollaboratorRequest(tenantIDOne));
 
     RelationshipThreeToFour = await RelationshipManager.newRelationship(
@@ -174,37 +178,32 @@ describe("test find by collaberator Hash method", () => {
       friendlyName: faker.company.name(),
     };
   }
-  
-  test("test toCollaboratorResponse method", async () => {
 
+  test("test toCollaboratorResponse method", async () => {
     const relationship = await RelationshipManager.findByCollaborators(tenantIDOne, tenantIDTwo);
     expect(relationship).not.toBeNull();
 
-  
     const responseOne = (relationship as relationshipManagerDocument).toCollaboratorResponse(tenantIDOne);
-  
+
     expect(responseOne).toHaveProperty("tenantID", tenantIDTwo.toString());
     expect(responseOne).toHaveProperty("friendlyName");
     expect(responseOne).toHaveProperty("status", "ACTIVE");
     expect(responseOne).toHaveProperty("projects", []);
-  
+
     const responseTwo = (relationship as relationshipManagerDocument).toCollaboratorResponse(tenantIDTwo);
-  
+
     expect(responseTwo).toHaveProperty("tenantID", tenantIDOne.toString());
     expect(responseTwo).toHaveProperty("friendlyName");
     expect(responseTwo).toHaveProperty("status", "ACTIVE");
     expect(responseTwo).toHaveProperty("projects", []);
   });
-  
-  test("test to collaberator response not found", async () => {
 
+  test("test to collaberator response not found", async () => {
     const relationship = await RelationshipManager.findByCollaborators(tenantIDOne, tenantIDTwo);
     expect(relationship).not.toBeNull();
-  
-    expect(() => (relationship as relationshipManagerDocument).toCollaboratorResponse(new mongoose.Types.ObjectId())).toThrow();
+
+    expect(() =>
+      (relationship as relationshipManagerDocument).toCollaboratorResponse(new mongoose.Types.ObjectId())
+    ).toThrow();
   });
-  
 });
-
-
-  

@@ -19,3 +19,9 @@ properties:
       type: string
       maxLength: 1024
       pattern: '^\S(.*\S)?$'
+  collaborators:
+    type: array
+    items:
+      type: string
+      format: uuid
+    

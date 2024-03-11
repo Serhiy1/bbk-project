@@ -4,11 +4,10 @@ import mongoose from "mongoose";
 
 import { Project } from "../../app/models/database/project";
 import { Tenancy, TenancyDocument } from "../../app/models/database/tenancy";
-import { CreateRandomProject } from "../utils/utils";
+import { CreateRandomProjectRequest, CreateRandomTenancy } from "../utils/utils";
 
 test("test NewTenancyFromRequest Static Function", async () => {
-  const companyName = faker.company.name();
-  const tenancy = await Tenancy.NewTenancy(companyName);
+  const tenancy = await CreateRandomTenancy();
   await tenancy.save();
 
   // get the tenancy from the database via id
@@ -20,17 +19,15 @@ test("test NewTenancyFromRequest Static Function", async () => {
 });
 
 test("test listAllProjects Method", async () => {
-  const companyName = faker.company.name();
-  const tenancy = await Tenancy.NewTenancy(companyName);
+  const tenancy = await CreateRandomTenancy();
   await tenancy.save();
 
-  const RandomProjects = [CreateRandomProject(), CreateRandomProject(), CreateRandomProject()];
+  const RandomProjects = [CreateRandomProjectRequest(), CreateRandomProjectRequest(), CreateRandomProjectRequest()];
 
   // Add projects to the tenancy
   for (const project of RandomProjects) {
-    const newProject = await Project.NewProjectFromRequest(project, tenancy._id);
+    const newProject = await Project.NewProjectFromRequest(project, tenancy);
     await newProject.save();
-    tenancy.projects.push(newProject._id);
   }
   await tenancy.save();
 
@@ -56,10 +53,8 @@ test("test listAllProjects Method", async () => {
 });
 
 test("test AssertProjectInTenancy Method", async () => {
-  const companyName = faker.company.name();
-  const tenancy = await Tenancy.NewTenancy(companyName);
-  const project = await Project.NewProjectFromRequest(CreateRandomProject(), tenancy._id);
-  tenancy.projects.push(project._id);
+  const tenancy = await CreateRandomTenancy();
+  const project = await Project.NewProjectFromRequest(CreateRandomProjectRequest(), tenancy);
   Promise.all([tenancy.save(), project.save()]);
 
   const tenancyFromDB = await Tenancy.findById(tenancy._id);
@@ -68,23 +63,20 @@ test("test AssertProjectInTenancy Method", async () => {
   expect(tenancyFromDB).not.toBeNull();
 
   // assert that the project is in the tenancy
-  const assert = await (tenancyFromDB as TenancyDocument).AssertProjectInTenancy(project._id);
+  const assert = await (tenancyFromDB as TenancyDocument).AssertProjectInTenancy(project.ProjectId);
   expect(assert).toBe(true);
 });
 
 describe("test ListPendingInvites Method", () => {
   let tenancy1: TenancyDocument;
-  const companyName1 = faker.company.name();
   let tenancy2: TenancyDocument;
-  const companyName2 = faker.company.name();
   let tenancy3: TenancyDocument;
-  const companyName3 = faker.company.name();
 
   // beforeall creates three tenancies
   beforeAll(async () => {
-    tenancy1 = await Tenancy.NewTenancy(companyName1);
-    tenancy2 = await Tenancy.NewTenancy(companyName2);
-    tenancy3 = await Tenancy.NewTenancy(companyName3);
+    tenancy1 = await CreateRandomTenancy();
+    tenancy2 = await CreateRandomTenancy();
+    tenancy3 = await CreateRandomTenancy();
 
     tenancy1.save();
     tenancy2.save();
@@ -218,9 +210,7 @@ describe("test ListPendingInvites Method", () => {
 });
 
 test("test AddCollaborator Method, collaborator does not exist should throw error", async () => {
-  const companyName = faker.company.name();
-  const tenancy = await Tenancy.NewTenancy(companyName);
-  await tenancy.save();
+  const tenancy = await CreateRandomTenancy();
 
   // add a collaborator that does not exist
   await expect(
@@ -229,18 +219,14 @@ test("test AddCollaborator Method, collaborator does not exist should throw erro
 });
 
 test("test removeCollaborator Method, collaborator does not exist should throw error", async () => {
-  const companyName = faker.company.name();
-  const tenancy = await Tenancy.NewTenancy(companyName);
-  await tenancy.save();
+  const tenancy = await CreateRandomTenancy();
 
   // remove a collaborator that does not exist
   await expect(tenancy.removeCollaborator(new mongoose.Types.ObjectId())).rejects.toThrow("unknown collaborator");
 });
 
 test("test findCollaborator on unknown collaborator", async () => {
-  const companyName = faker.company.name();
-  const tenancy = await Tenancy.NewTenancy(companyName);
-  await tenancy.save();
+  const tenancy = await CreateRandomTenancy();
 
   // remove a collaborator that does not exist
   await expect(tenancy.findCollaborator(new mongoose.Types.ObjectId())).rejects.toThrow("unknown collaborator");

@@ -35,9 +35,6 @@ authenticationRouter.post(
       const tenancy = await Tenancy.NewTenancy(companyName);
       const user = await User.NewUser({ email, passwordHash, tenancyId: tenancy._id });
 
-      await tenancy.save();
-      await user.save();
-
       const token = NewToken(user.toTokenInfo());
       res.status(201).send({ token: token, tenantID: tenancy.id });
     } catch (error) {
