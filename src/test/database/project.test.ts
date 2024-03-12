@@ -90,108 +90,100 @@ test("test ToProjectResponse Method", async () => {
   expect(projectResponse).toHaveProperty("projectStatus");
 });
 
-
 test("test CreateCopyForCollaborator static Method", async () => {
   const ownerTenancy = await CreateRandomTenancy();
   let collaboratorOne = await CreateRandomTenancy();
   let collaboratorTwo = await CreateRandomTenancy();
   const projectinfo = CreateRandomProjectRequest();
-  
+
   const project = await Project.NewProjectFromRequest(projectinfo, ownerTenancy);
-  
+
   // create copies for the collaborators
   await Project.CreateCopyForCollaborator(project, collaboratorOne);
   await Project.CreateCopyForCollaborator(project, collaboratorTwo);
-  
+
   // check that the copies are present on the collaborators project list
-  collaboratorOne = (await Tenancy.findById(collaboratorOne._id) as TenancyDocument);
-  collaboratorTwo = (await Tenancy.findById(collaboratorTwo._id) as TenancyDocument);
-  
+  collaboratorOne = (await Tenancy.findById(collaboratorOne._id)) as TenancyDocument;
+  collaboratorTwo = (await Tenancy.findById(collaboratorTwo._id)) as TenancyDocument;
+
   expect(collaboratorOne.projects).toContainEqual(project.ProjectId);
   expect(collaboratorTwo.projects).toContainEqual(project.ProjectId);
-})
+});
 
 test("test ListProjectCollaborators Method", async () => {
-  
-  
   const ownerTenancy = await CreateRandomTenancy();
   const collaboratorOne = await CreateRandomTenancy();
   const collaboratorTwo = await CreateRandomTenancy();
   const projectinfo = CreateRandomProjectRequest();
-  
+
   const project = await Project.NewProjectFromRequest(projectinfo, ownerTenancy);
-  
+
   // create copies for the collaborators
   await Project.CreateCopyForCollaborator(project, collaboratorOne);
   await Project.CreateCopyForCollaborator(project, collaboratorTwo);
-  
+
   // directly update the collaborators list to skip the relationship checks
   project.collaborators = [ownerTenancy._id, collaboratorOne._id, collaboratorTwo._id];
   await project.save();
-  
+
   // get the project from the database
-  const projectFromDB = await Project.findById(project._id)
-  
+  const projectFromDB = await Project.findById(project._id);
+
   // get the list of collaborators
-  const collaborators : ProjectCollaborator[] = await (projectFromDB as ProjectDocument).ListProjectCollaborators();
+  const collaborators: ProjectCollaborator[] = await (projectFromDB as ProjectDocument).ListProjectCollaborators();
   expect(collaborators.length).toBe(2);
   expect(collaborators[0].tenantID).toBe(collaboratorOne._id.toString());
   expect(collaborators[1].tenantID).toBe(collaboratorTwo._id.toString());
-  
+
   expect(collaborators[0].friendlyName).toBe(collaboratorOne.companyName);
   expect(collaborators[1].friendlyName).toBe(collaboratorTwo.companyName);
-  
-})
+});
 
 test("test IsOwner Method", async () => {
   const ownerTenancy = await CreateRandomTenancy();
   const collaboratorOne = await CreateRandomTenancy();
   const collaboratorTwo = await CreateRandomTenancy();
   const projectinfo = CreateRandomProjectRequest();
-  
+
   const project = await Project.NewProjectFromRequest(projectinfo, ownerTenancy);
-  
+
   // create copies for the collaborators
   await Project.CreateCopyForCollaborator(project, collaboratorOne);
   await Project.CreateCopyForCollaborator(project, collaboratorTwo);
-  
+
   // directly update the collaborators list to skip the relationship checks
   project.collaborators = [ownerTenancy._id, collaboratorOne._id, collaboratorTwo._id];
   await project.save();
-  
+
   // get the project from the database
-  const projectFromDB = (await Project.findById(project._id) as ProjectDocument);
+  const projectFromDB = (await Project.findById(project._id)) as ProjectDocument;
   expect(projectFromDB.IsOwner(ownerTenancy)).toBe(true);
   expect(projectFromDB.IsOwner(collaboratorOne)).toBe(false);
   expect(projectFromDB.IsOwner(collaboratorTwo)).toBe(false);
-
-})
+});
 
 test("IsActive Method", async () => {
-  
   const ownerTenancy = await CreateRandomTenancy();
   const collaboratorOne = await CreateRandomTenancy();
   const collaboratorTwo = await CreateRandomTenancy();
   const projectinfo = CreateRandomProjectRequest();
-  
+
   const project = await Project.NewProjectFromRequest(projectinfo, ownerTenancy);
-  
+
   // create copies for the collaborators
   await Project.CreateCopyForCollaborator(project, collaboratorOne);
   await Project.CreateCopyForCollaborator(project, collaboratorTwo);
-  
+
   // directly update the collaborators list to skip the relationship checks
   project.collaborators = [ownerTenancy._id, collaboratorOne._id];
   await project.save();
-  
+
   // get the project from the database
-  const projectFromDB = (await Project.findById(project._id) as ProjectDocument);
+  const projectFromDB = (await Project.findById(project._id)) as ProjectDocument;
   expect(projectFromDB.IsActive(ownerTenancy)).toBe(true);
   expect(projectFromDB.IsActive(collaboratorOne)).toBe(true);
   expect(projectFromDB.IsActive(collaboratorTwo)).toBe(false);
-  
-})
-
+});
 
 test("test applyDiff Method", async () => {
   const projectinfo = CreateRandomProjectRequest();

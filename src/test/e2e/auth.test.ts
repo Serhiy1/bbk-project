@@ -1,8 +1,9 @@
-import { describe, expect, test } from "@jest/globals";
+import { beforeAll, describe, expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 import request from "supertest";
 
 import { app } from "../../app/app";
+import { ApplicationResponse } from "../../app/models/types/applications";
 // import { DecodeToken } from "../app/middleware/authentication";
 // import { UserTokenInfo } from "../app/models/database/user";
 import {
@@ -13,7 +14,7 @@ import {
   UserResponse,
 } from "../../app/models/types/authentications";
 import { NewToken } from "../../app/utils/token";
-import { Person } from "../utils/utils";
+import { Person, SignupPerson } from "../utils/utils";
 
 let FirstPerson: Person;
 let FirstToken: string;
@@ -210,5 +211,69 @@ describe("whoami Validation", () => {
 
     const res = await request(app).get("/user/whoami").set("Authorization", `Bearer ${NonexistentToken}`);
     expect(res.statusCode).toBe(404);
+  });
+});
+
+describe("Application Authentication", () => {
+  // new person signs up and logs in
+  // person creates an application
+  // user authenticates application
+
+  let person: Person;
+  let application: ApplicationResponse;
+
+  beforeAll(async () => {
+    person = new Person();
+    await SignupPerson(person, app);
+  });
+
+  test("Create Application", async () => {
+    const res = await request(app).get("/app").set("Authorization", `Bearer ${person.token}`);
+    expect(res.statusCode).toBe(201);
+    application = res.body as ApplicationResponse;
+
+    expect(application).toHaveProperty("appID");
+    expect(application).toHaveProperty("secret");
+  });
+
+  test("Authenticate Application", async () => {
+    // use the login endpoint to authenticate the application
+    const res = await request(app).post("/user/login").send({ email: application.appID, password: application.secret });
+    const res_body = res.body as LoginResponse;
+    console.log(res_body);
+    expect(res.statusCode).toBe(200);
+  });
+
+  test("Authenticate Application with wrong secret", async () => {
+    // use the login endpoint to authenticate the application
+    const res = await request(app).post("/user/login").send({ email: application.appID, password: "wrong_secret" });
+    expect(res.statusCode).toBe(403);
+  });
+
+  test("Authenticate Application with wrong appID", async () => {
+    // use the login endpoint to authenticate the application
+    const res = await request(app)
+      .post("/user/login")
+      .send({ email: new mongoose.Types.UUID(), password: application.secret });
+    expect(res.statusCode).toBe(404);
+  });
+
+  test("Roll Secret for application, authentication should fail", async () => {
+    const res = await request(app)
+      .get(`/app/${application.appID}/newSecret`)
+      .set("Authorization", `Bearer ${person.token}`);
+    expect(res.statusCode).toBe(201);
+
+    const newSecret = res.body.secret;
+
+    // make sure the old secret does not work
+    const res2 = await request(app)
+      .post("/user/login")
+      .send({ email: application.appID, password: application.secret });
+    expect(res2.statusCode).toBe(403);
+
+    // make sure the new secret does work
+    const res3 = await request(app).post("/user/login").send({ email: application.appID, password: newSecret });
+    expect(res3.statusCode).toBe(200);
   });
 });
