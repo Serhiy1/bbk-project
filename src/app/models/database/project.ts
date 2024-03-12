@@ -284,9 +284,9 @@ ProjectSchema.method("applyDiff", async function applyDiff(diff: ProjectDiffRequ
   await this.CreateCopiesForCollaborators(newCollaborators);
 
   // get the sum current + removed + owner and remove duplicates, and apply the diff to each
-  const SumCollaborators = [...new Set([...this.collaborators, ...diffCollaborators, this.OwnerTenancy])];
+  const UpdateCollaborators = [...new Set([...this.collaborators, ...diffCollaborators, this.OwnerTenancy])];
 
-  const updatePromises = SumCollaborators.map(async (tenancyId) => {
+  const updatePromises = UpdateCollaborators.map(async (tenancyId) => {
     const tenancy = await Tenancy.findById(tenancyId);
     if (tenancy === null) {
       return;

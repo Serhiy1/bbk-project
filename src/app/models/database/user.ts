@@ -33,6 +33,7 @@ export type UserDocument = HydratedDocument<IUser, IUserMethods>;
 interface IUserModel extends Model<IUser, IUserQueryHelpers, IUserMethods> {
   NewUser: (userInfo: IUserArgs) => Promise<UserDocument>;
   AlreadyExists: (email: string) => Promise<boolean>;
+  FindByEmail: (email: string) => Promise<UserDocument | null>;
 }
 
 const userSchema = new Schema<IUser, IUserModel, IUserMethods, IUserQueryHelpers>({
@@ -42,8 +43,12 @@ const userSchema = new Schema<IUser, IUserModel, IUserMethods, IUserQueryHelpers
   tenancyId: { type: Schema.Types.ObjectId, required: true },
 });
 
+userSchema.static("FindByEmail", async function FindByEmail(email: string): Promise<UserDocument | null> {
+  return this.findOne({ email });
+});
+
 userSchema.static("NewUser", async function NewUser(userInfo: IUserArgs): Promise<UserDocument> {
-  return this.create({
+  return await this.create({
     _id: new mongoose.Types.ObjectId(),
     email: userInfo.email,
     passwordHash: userInfo.passwordHash,

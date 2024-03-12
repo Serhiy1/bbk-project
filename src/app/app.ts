@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import morgan from "morgan";
 
 import { HttpError, NotFoundError } from "./errors/errors";
+import { ApplicationRouter } from "./routes/applicationsRouter";
 import { authenticationRouter } from "./routes/AuthenticationRouter";
 import { collaboratorsRouter } from "./routes/CollaboratorsRouter";
 import { ProjectEventRouter } from "./routes/ProjectsEventsRouter";
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/user", authenticationRouter);
 app.use("/projects", ProjectEventRouter);
 app.use("/collaborators", collaboratorsRouter);
+app.use("/app", ApplicationRouter);
 
 // handle requests for all unknown routes
 app.use((req, res, next) => {
