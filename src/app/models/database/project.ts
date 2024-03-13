@@ -23,7 +23,7 @@ interface IProjectArgs {
   projectStatus: "ACTIVE" | "INACTIVE";
   events: mongoose.Types.ObjectId[];
   OwnerTenancy: mongoose.Types.ObjectId;
-  colaboratorTenancy: mongoose.Types.ObjectId;
+  collaboratorTenancy: mongoose.Types.ObjectId;
   diffs: ProjectDiffResponse[];
   collaborators: mongoose.Types.ObjectId[];
 }
@@ -36,7 +36,7 @@ interface IProject extends IProjectArgs {
 
 // Declare the methods of the model
 interface IProjectMethods {
-  ListallEvents: () => Promise<EventResponse[]>;
+  ListAllEvents: () => Promise<EventResponse[]>;
   ToProjectResponse: () => Promise<ProjectResponse>;
   ListProjectCollaborators: () => Promise<ProjectCollaborator[]>;
   IsOwner: (tenancy: TenancyDocument) => boolean;
@@ -66,7 +66,7 @@ const ProjectSchema = new Schema<IProject, IProjectModel, IProjectMethods, IProj
   // ID visible to the User
   ProjectId: { type: Schema.Types.ObjectId, required: true },
   OwnerTenancy: { type: Schema.Types.ObjectId, ref: "Tenancy", required: true },
-  colaboratorTenancy: { type: Schema.Types.ObjectId, ref: "Tenancy" },
+  collaboratorTenancy: { type: Schema.Types.ObjectId, ref: "Tenancy" },
   projectName: { type: String, required: true },
   startedDate: { type: Date, required: true },
   customMetaData: { type: Map, of: String },
@@ -96,7 +96,7 @@ ProjectSchema.static(
       projectStatus: "ACTIVE",
       events: [],
       OwnerTenancy: tenancy._id,
-      colaboratorTenancy: tenancy._id,
+      collaboratorTenancy: tenancy._id,
       diffs: [],
 
       // technically the owner shares the project with themselves, makes it easier to apply diffs and push events
@@ -134,7 +134,7 @@ ProjectSchema.static(
       projectStatus: project.projectStatus,
       events: [],
       OwnerTenancy: project.OwnerTenancy,
-      colaboratorTenancy: collaborator._id,
+      collaboratorTenancy: collaborator._id,
       diffs: [],
       collaborators: project.collaborators,
     };
@@ -142,9 +142,9 @@ ProjectSchema.static(
     // push the project to the collaborator's project list
     collaborator.projects.push(projectObj.ProjectId);
 
-    const collaberatorProject = await this.create(projectObj);
-    Promise.all([collaberatorProject.save(), collaborator.save()]);
-    return collaberatorProject;
+    const collaboratorProject = await this.create(projectObj);
+    Promise.all([collaboratorProject.save(), collaborator.save()]);
+    return collaboratorProject;
   }
 );
 
@@ -155,12 +155,12 @@ ProjectSchema.static(
     tenancy: TenancyDocument
   ): Promise<ProjectDocument | null> {
     //  Find a project with the same project ID and collaborator tenancy
-    const project = await this.findOne({ ProjectId: projectId, colaboratorTenancy: tenancy._id });
+    const project = await this.findOne({ ProjectId: projectId, collaboratorTenancy: tenancy._id });
     return project;
   }
 );
 
-ProjectSchema.method("ListallEvents", async function ListallEvents(): Promise<EventResponse[]> {
+ProjectSchema.method("ListAllEvents", async function ListAllEvents(): Promise<EventResponse[]> {
   const eventIds = this.events;
   const events = await Event.find({ _id: { $in: eventIds } });
   const eventResp = events.map(async (event) => await event.ToEventResponse());

@@ -1,6 +1,6 @@
 import mongoose, { HydratedDocument, model, Schema } from "mongoose";
 
-import { EventRequest, EventResponse } from "../types/projects";
+import { AttachmentRequest, EventRequest, EventResponse } from "../types/projects";
 import { Project, ProjectDocument } from "./project";
 import { Tenancy, TenancyDocument } from "./tenancy";
 
@@ -11,7 +11,7 @@ interface IEventArgs {
   eventName: string;
   eventType: string;
   customMetaData: { [key: string]: string };
-  attachments: mongoose.Types.ObjectId[];
+  attachments: AttachmentRequest[];
   // Can be owner or collaborator
   eventCreator: mongoose.Types.ObjectId;
 }
@@ -22,15 +22,15 @@ interface IEvent extends IEventArgs {
 
 interface IEventMethods {
   ToEventResponse: () => Promise<EventResponse>;
-  IspartOfProject: (projectId: ProjectDocument) => Promise<boolean>;
+  IsPartOfProject: (projectId: ProjectDocument) => Promise<boolean>;
   IsVisibleToCollaborator: (collaboratorId: mongoose.Types.ObjectId) => boolean;
 }
 
-interface IEvenntQueryHelpers {}
+interface IEventQueryHelpers {}
 
 export type EventDocument = HydratedDocument<IEvent, IEventMethods>;
 
-interface IEventModel extends mongoose.Model<IEvent, IEvenntQueryHelpers, IEventMethods> {
+interface IEventModel extends mongoose.Model<IEvent, IEventQueryHelpers, IEventMethods> {
   NewEventFromRequest: (
     eventInfo: EventRequest,
     projectId: ProjectDocument,
@@ -110,13 +110,14 @@ EventSchema.method("ToEventResponse", async function ToEventResponse(): Promise<
     eventType: this.eventType,
     customMetaData: this.customMetaData,
     eventCreator: tenancyInfo,
+    attachments: this.attachments,
   };
   return obj;
 });
 
-EventSchema.method("IspartOfProject", async function IspartOfProject(project: ProjectDocument): Promise<boolean> {
-  const IspartOfProject = project.events.includes(this._id);
-  if (!IspartOfProject) {
+EventSchema.method("IsPartOfProject", async function IsPartOfProject(project: ProjectDocument): Promise<boolean> {
+  const IsPartOfProject = project.events.includes(this._id);
+  if (!IsPartOfProject) {
     return false;
   }
 

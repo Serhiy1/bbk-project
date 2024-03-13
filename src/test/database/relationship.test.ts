@@ -20,13 +20,13 @@ test("test newRelationship Static Function", async () => {
   // get the relationship from the database via id
   const relationshipFromDB = await RelationshipManager.findById(relationship._id);
 
-  // asseert that the result is not null
+  // assert that the result is not null
   expect(relationshipFromDB).not.toBeNull();
 
   // assert that the relationship has the correct properties
-  expect(relationshipFromDB).toHaveProperty("collaberatorsInfo");
-  expect(relationshipFromDB).toHaveProperty("collaberators");
-  expect(relationshipFromDB).toHaveProperty("collaberatorsHash");
+  expect(relationshipFromDB).toHaveProperty("collaboratorsInfo");
+  expect(relationshipFromDB).toHaveProperty("collaborators");
+  expect(relationshipFromDB).toHaveProperty("collaboratorsHash");
 });
 
 // test findByCollaborators Static Function, where the relationship exists
@@ -105,8 +105,8 @@ describe("test status and acceptInvite methods", () => {
     expect((relationshipFromDB as relationshipManagerDocument).status()).toBe("ACTIVE");
   });
 
-  // third test deletes the collaberator and asserts that the status is PENDING
-  test("test deleteCollaberator method", async () => {
+  // third test deletes the collaborator and asserts that the status is PENDING
+  test("test unAcceptInvite method", async () => {
     await relationshipManager.unAcceptInvite(tenantIDOne);
 
     const relationshipFromDB = await RelationshipManager.findById(relationshipManager._id);
@@ -115,7 +115,7 @@ describe("test status and acceptInvite methods", () => {
   });
 });
 
-describe("test find by collaberator Hash method", () => {
+describe("test find by collaborator Hash method", () => {
   const tenantIDOne = new mongoose.Types.ObjectId();
   const companyOne = faker.company.name();
 
@@ -125,17 +125,17 @@ describe("test find by collaberator Hash method", () => {
   const tenantIDThree = new mongoose.Types.ObjectId();
 
   const tenantIDFour = new mongoose.Types.ObjectId();
-  let RelationshipOnetoTwo: relationshipManagerDocument;
+  let RelationshipOneToTwo: relationshipManagerDocument;
   let RelationshipThreeToFour: relationshipManagerDocument;
 
-  // convert the declarations above into a beforeall function
+  // convert the declarations above into a beforeAll function
   beforeAll(async () => {
-    RelationshipOnetoTwo = await RelationshipManager.newRelationship(
+    RelationshipOneToTwo = await RelationshipManager.newRelationship(
       tenantIDOne,
       companyOne,
       newCollaboratorRequest(tenantIDTwo)
     );
-    await RelationshipOnetoTwo.acceptInvite(tenantIDTwo, newCollaboratorRequest(tenantIDOne));
+    await RelationshipOneToTwo.acceptInvite(tenantIDTwo, newCollaboratorRequest(tenantIDOne));
 
     RelationshipThreeToFour = await RelationshipManager.newRelationship(
       tenantIDThree,
@@ -145,19 +145,19 @@ describe("test find by collaberator Hash method", () => {
     await RelationshipThreeToFour.acceptInvite(tenantIDFour, newCollaboratorRequest(tenantIDThree));
   });
 
-  test("test find by collaberator Hash method success first relationship", async () => {
+  test("test find by collaborator Hash method success first relationship", async () => {
     // find in the relation in the order it was created
     const relationship = await RelationshipManager.findByCollaborators(tenantIDOne, tenantIDTwo);
     expect(relationship).not.toBeNull();
-    expect(relationship?._id).toEqual(RelationshipOnetoTwo._id);
+    expect(relationship?._id).toEqual(RelationshipOneToTwo._id);
 
     // find in the relation in the reverse order it was created
     const relationshipReverse = await RelationshipManager.findByCollaborators(tenantIDTwo, tenantIDOne);
     expect(relationshipReverse).not.toBeNull();
-    expect(relationship?._id).toEqual(RelationshipOnetoTwo._id);
+    expect(relationship?._id).toEqual(RelationshipOneToTwo._id);
   });
 
-  test("test find by collaberator Hash method success second relationship", async () => {
+  test("test find by collaborator Hash method success second relationship", async () => {
     const relationship = await RelationshipManager.findByCollaborators(tenantIDThree, tenantIDFour);
     expect(relationship).not.toBeNull();
     expect(relationship?._id).toEqual(RelationshipThreeToFour._id);
@@ -167,7 +167,7 @@ describe("test find by collaberator Hash method", () => {
     expect(relationship?._id).toEqual(RelationshipThreeToFour._id);
   });
 
-  test("test find by collaberator Hash method failure", async () => {
+  test("test find by collaborator Hash method failure", async () => {
     const relationship = await RelationshipManager.findByCollaborators(tenantIDOne, tenantIDThree);
     expect(relationship).toBeNull();
   });
@@ -198,7 +198,7 @@ describe("test find by collaberator Hash method", () => {
     expect(responseTwo).toHaveProperty("projects", []);
   });
 
-  test("test to collaberator response not found", async () => {
+  test("test to collaborator response not found", async () => {
     const relationship = await RelationshipManager.findByCollaborators(tenantIDOne, tenantIDTwo);
     expect(relationship).not.toBeNull();
 

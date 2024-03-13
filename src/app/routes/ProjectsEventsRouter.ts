@@ -123,7 +123,7 @@ ProjectEventRouter.get(
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [project, _] = await FetchProjectFromRequestSafe(req, { ignoreActive: true });
-      const events = await project.ListallEvents();
+      const events = await project.ListAllEvents();
       res.status(200).send(events);
     } catch (error) {
       return next(error as Error);
@@ -183,7 +183,7 @@ ProjectEventRouter.get(
         return next(new NotFoundError("Event not found"));
       }
 
-      if (await event.IspartOfProject(project)) {
+      if (await event.IsPartOfProject(project)) {
         return res.status(200).send(await event.ToEventResponse());
       } else {
         return next(new NotFoundError("Event not found"));

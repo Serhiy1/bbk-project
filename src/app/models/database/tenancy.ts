@@ -131,7 +131,7 @@ TenancySchema.method("ListPendingInvites", async function ListPendingInvites(): 
 
     // if the current tenant has not accepted the invite, but the status is pending, that
     // means an invite has been sent but not yet accepted
-    if (collaborator.collaberatorsInfo.get(this._id)?.accepted === true && collaborator.status() === "PENDING") {
+    if (collaborator.collaboratorsInfo.get(this._id)?.accepted === true && collaborator.status() === "PENDING") {
       pendingInvites.push(collaborator.toCollaboratorResponse(this._id));
     }
   }
@@ -151,7 +151,7 @@ TenancySchema.method("ListOpenInvites", async function ListOpenInvites(): Promis
     }
 
     // if the current tenant has not accepted the invite, skip
-    if (collaborator.collaberatorsInfo.get(this._id)?.accepted === false && collaborator.status() === "PENDING") {
+    if (collaborator.collaboratorsInfo.get(this._id)?.accepted === false && collaborator.status() === "PENDING") {
       openInvites.push(collaborator.toCollaboratorResponse(this._id));
     }
   }
@@ -161,17 +161,17 @@ TenancySchema.method("ListOpenInvites", async function ListOpenInvites(): Promis
 
 TenancySchema.method(
   "AddCollaborator",
-  async function AddCollaborator(collaberatorRequest: collaboratorsRequest): Promise<collaboratorsResponse> {
-    const otherTenancy = await Tenancy.findById(collaberatorRequest.tenantID);
+  async function AddCollaborator(collaboratorRequest: collaboratorsRequest): Promise<collaboratorsResponse> {
+    const otherTenancy = await Tenancy.findById(collaboratorRequest.tenantID);
 
     if (!otherTenancy) {
-      throw new UserInputError("collaberator Tenant does not exist");
+      throw new UserInputError("collaborator Tenant does not exist");
     }
 
     // check if there is an open invite
     let relationship = await RelationshipManager.findByCollaborators(
       this._id,
-      new mongoose.Types.ObjectId(collaberatorRequest.tenantID)
+      new mongoose.Types.ObjectId(collaboratorRequest.tenantID)
     );
 
     const session = await mongoose.startSession();
@@ -179,12 +179,12 @@ TenancySchema.method(
 
     if (relationship == null) {
       // if there is no open invite, create a new one
-      relationship = await RelationshipManager.newRelationship(this._id, this.companyName, collaberatorRequest);
+      relationship = await RelationshipManager.newRelationship(this._id, this.companyName, collaboratorRequest);
       this.relationships.push(relationship._id);
       otherTenancy.relationships.push(relationship._id);
     } else {
       // if there is an open invite, accept it
-      relationship.acceptInvite(this.id, collaberatorRequest);
+      relationship.acceptInvite(this.id, collaboratorRequest);
     }
 
     Promise.all([this.save(), otherTenancy.save()]);
@@ -203,20 +203,20 @@ TenancySchema.method(
       throw new UserInputError("unknown collaborator");
     }
 
-    const collaberatorInfo = relationship.collaberatorsInfo.get(this._id);
+    const collaboratorInfo = relationship.collaboratorsInfo.get(this._id);
 
-    if (collaberatorInfo === undefined) {
+    if (collaboratorInfo === undefined) {
       throw new ServerError("unknown collaborator");
     }
 
     // Check for any active projects
     const checkPromises = this.projects.map(async (projectId) => {
       // find all projects that are with the collaborator
-      const collaberator = await Tenancy.findById(collaboratorTenancy);
-      if (collaberator == null) {
+      const collaborator = await Tenancy.findById(collaboratorTenancy);
+      if (collaborator == null) {
         return;
       }
-      const project = await Project.FindByProjectId(projectId, collaberator);
+      const project = await Project.FindByProjectId(projectId, collaborator);
       if (project == null) {
         return;
       }
@@ -241,9 +241,9 @@ TenancySchema.method(
 
     await Promise.all(checkPromises);
 
-    collaberatorInfo.accepted = false;
+    collaboratorInfo.accepted = false;
 
-    relationship.markModified("collaberatorsInfo");
+    relationship.markModified("collaboratorsInfo");
     await relationship.save();
   }
 );
