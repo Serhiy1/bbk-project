@@ -7,6 +7,7 @@ import { ApplicationRouter } from "./routes/applicationsRouter";
 import { authenticationRouter } from "./routes/AuthenticationRouter";
 import { collaboratorsRouter } from "./routes/CollaboratorsRouter";
 import { ProjectEventRouter } from "./routes/ProjectsEventsRouter";
+import { PublicProjectsRouter } from "./routes/publicProjectsRouter";
 
 export const app = express();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 
 app.use("/user", authenticationRouter);
 app.use("/projects", ProjectEventRouter);
+app.use("/public/projects", PublicProjectsRouter);
 app.use("/collaborators", collaboratorsRouter);
 app.use("/app", ApplicationRouter);
 

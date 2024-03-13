@@ -25,9 +25,13 @@ properties:
     type: array
     items:
       $ref: './ProjectCollaborator.yaml'    
+  public:
+    type: boolean
+    
 required:
   - projectId
   - startedDate
   - projectName
   - projectStatus
   - ProjectCollaborators
+  - public

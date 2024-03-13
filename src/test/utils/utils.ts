@@ -40,8 +40,7 @@ export async function SignupPerson(person: Person, app: Express): Promise<string
   return res.body.token;
 }
 
-// Create A new Random Project object using faker
-export function CreateRandomProjectRequest(): ProjectRequest {
+export function CreateRandomProjectRequest(opts = { public_project: false }): ProjectRequest {
   return {
     projectName: faker.lorem.words(3),
     projectDescription: faker.lorem.sentence(),
@@ -52,6 +51,7 @@ export function CreateRandomProjectRequest(): ProjectRequest {
       [faker.lorem.word()]: faker.lorem.word(),
     },
     collaborators: [],
+    public: opts.public_project,
   };
 }
 
