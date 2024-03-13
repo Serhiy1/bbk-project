@@ -203,13 +203,13 @@ describe("whoami Validation", () => {
     // person has got hold of a token key and makes an invalid token without a user
     const NonExistentPerson = new Person();
 
-    const NonexistentToken = NewToken({
+    const NonExistentToken = NewToken({
       email: NonExistentPerson.email,
       UserId: new mongoose.Types.ObjectId(),
       tenancyId: new mongoose.Types.ObjectId(),
     });
 
-    const res = await request(app).get("/user/whoami").set("Authorization", `Bearer ${NonexistentToken}`);
+    const res = await request(app).get("/user/whoami").set("Authorization", `Bearer ${NonExistentToken}`);
     expect(res.statusCode).toBe(404);
   });
 });

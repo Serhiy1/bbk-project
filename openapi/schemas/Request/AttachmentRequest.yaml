@@ -1,12 +1,28 @@
 type: object
 properties:
-  attachmentName:
+  filename:
     type: string
-    maxLength: 64
-    pattern: '^\S(.*\S)?$'
-  blobUuid:
+    description: Name of the file
+  extension:
     type: string
-    format: uuid
+    description: File extension
+  file:
+    type: string
+    format: binary
+    description: Binary data of the file
+  hash:
+    type: object
+    properties:
+      hashType:
+        type: string
+        enum:
+          - MD5
+          - SHA1
+          - SHA256
+      hashValue:
+        type: string
 required:
-  - attachmentName
-  - blobUuid
+  - filename
+  - extension
+  - file
+  - hash

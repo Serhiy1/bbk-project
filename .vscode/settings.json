@@ -5,5 +5,9 @@
             "language": "asciidoc",
             "scheme": "file"
         }
+    ],
+    "cSpell.words": [
+        "nessicarily",
+        "openapi"
     ]
 }

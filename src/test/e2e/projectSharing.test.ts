@@ -106,7 +106,7 @@ describe("End to end Project sharing", () => {
     // get the collaborators field of the project and append person 3 to it
     const collaborators = [person2.token_info.tenancyId.toString(), person3.token_info.tenancyId.toString()];
 
-    // create the diif request
+    // create the diff request
     const diff_request: ProjectDiffRequest = { collaborators: collaborators };
     // patch the project
     const res2 = await request(app)
@@ -209,7 +209,7 @@ describe("End to end Project sharing", () => {
       .send(diff_request);
     expect(res.statusCode).toBe(200);
 
-    // check person 1 is still able to see the projecct
+    // check person 1 is still able to see the project
     const res2 = await request(app)
       .get(`/projects/${project.projectId}`)
       .set("Authorization", `Bearer ${person1.token}`);
@@ -519,7 +519,7 @@ function checkProjectMatchesRequest(project: ProjectResponse, request: ProjectRe
 }
 
 function checkCollaborators(project: ProjectResponse, collaborators: string[]) {
-  const collaboratorIDs = project.ProjectCollaborators.map((collab) => collab.tenantID);
+  const collaboratorIDs = project.ProjectCollaborators.map((collaborator) => collaborator.tenantID);
   // check that the project collaboratorID's Include the request collaborators but not nessicarily match
   expect(collaboratorIDs).toEqual(expect.arrayContaining(collaborators));
 }

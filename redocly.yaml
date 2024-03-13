@@ -3,10 +3,6 @@ apis:
     root: ./openapi/applications.yaml
     x-openapi-ts:
       output: .\src\app\models\openapi\applications.ts
-  attachments:
-    root: ./openapi/attachments.yaml
-    x-openapi-ts:
-      output: .\src\app\models\openapi\attachments.ts
   authentication:
     root: ./openapi/authentication.yaml
     x-openapi-ts:

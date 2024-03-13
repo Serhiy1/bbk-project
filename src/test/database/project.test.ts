@@ -15,30 +15,30 @@ import {
 test("test NewProjectFromRequest Static Function", async () => {
   const tenancy = await CreateRandomTenancy();
 
-  const projectinfo = CreateRandomProjectRequest();
-  const project = await Project.NewProjectFromRequest(projectinfo, tenancy);
+  const projectInfo = CreateRandomProjectRequest();
+  const project = await Project.NewProjectFromRequest(projectInfo, tenancy);
 
   // get the project from the database via id
   const projectFromDB = await Project.findById(project._id);
 
   // check that the project has the correct properties
-  expect(projectFromDB).toHaveProperty("projectName", projectinfo.projectName);
+  expect(projectFromDB).toHaveProperty("projectName", projectInfo.projectName);
   expect(projectFromDB).toHaveProperty("startedDate");
   expect(projectFromDB).toHaveProperty("customMetaData");
-  expect(projectFromDB).toHaveProperty("projectDescription", projectinfo.projectDescription);
+  expect(projectFromDB).toHaveProperty("projectDescription", projectInfo.projectDescription);
   expect(projectFromDB).toHaveProperty("projectStatus", "ACTIVE");
   expect(projectFromDB).toHaveProperty("events", []);
   expect(projectFromDB).toHaveProperty("OwnerTenancy", tenancy._id);
   expect(projectFromDB).toHaveProperty("diffs", []);
 });
 
-test("test ListallEvents Method", async () => {
+test("test ListAllEvents Method", async () => {
   const tenancy = await CreateRandomTenancy();
-  const projectinfo = CreateRandomProjectRequest();
+  const projectInfo = CreateRandomProjectRequest();
   const RandomEvents = [CreateRandomEventRequest(), CreateRandomEventRequest(), CreateRandomEventRequest()];
 
   // Add project to database
-  const project = await Project.NewProjectFromRequest(projectinfo, tenancy);
+  const project = await Project.NewProjectFromRequest(projectInfo, tenancy);
 
   // Create events and add them to the project
   for (const event of RandomEvents) {
@@ -54,7 +54,7 @@ test("test ListallEvents Method", async () => {
   expect(projectFromDB).not.toBeNull();
 
   // get the events from the project
-  const eventsFromDB = await (projectFromDB as ProjectDocument).ListallEvents();
+  const eventsFromDB = await (projectFromDB as ProjectDocument).ListAllEvents();
 
   // check that the events have the correct properties
   for (const event of eventsFromDB) {
@@ -67,11 +67,11 @@ test("test ListallEvents Method", async () => {
 });
 
 test("test ToProjectResponse Method", async () => {
-  const projectinfo = CreateRandomProjectRequest();
+  const projectInfo = CreateRandomProjectRequest();
   const tenancy = await CreateRandomTenancy();
 
   // Add project to database
-  const project = await Project.NewProjectFromRequest(projectinfo, tenancy);
+  const project = await Project.NewProjectFromRequest(projectInfo, tenancy);
 
   // get project from database
   const projectFromDB = await Project.findById(project._id);
@@ -94,9 +94,9 @@ test("test CreateCopyForCollaborator static Method", async () => {
   const ownerTenancy = await CreateRandomTenancy();
   let collaboratorOne = await CreateRandomTenancy();
   let collaboratorTwo = await CreateRandomTenancy();
-  const projectinfo = CreateRandomProjectRequest();
+  const projectInfo = CreateRandomProjectRequest();
 
-  const project = await Project.NewProjectFromRequest(projectinfo, ownerTenancy);
+  const project = await Project.NewProjectFromRequest(projectInfo, ownerTenancy);
 
   // create copies for the collaborators
   await Project.CreateCopyForCollaborator(project, collaboratorOne);
@@ -114,9 +114,9 @@ test("test ListProjectCollaborators Method", async () => {
   const ownerTenancy = await CreateRandomTenancy();
   const collaboratorOne = await CreateRandomTenancy();
   const collaboratorTwo = await CreateRandomTenancy();
-  const projectinfo = CreateRandomProjectRequest();
+  const projectInfo = CreateRandomProjectRequest();
 
-  const project = await Project.NewProjectFromRequest(projectinfo, ownerTenancy);
+  const project = await Project.NewProjectFromRequest(projectInfo, ownerTenancy);
 
   // create copies for the collaborators
   await Project.CreateCopyForCollaborator(project, collaboratorOne);
@@ -143,9 +143,9 @@ test("test IsOwner Method", async () => {
   const ownerTenancy = await CreateRandomTenancy();
   const collaboratorOne = await CreateRandomTenancy();
   const collaboratorTwo = await CreateRandomTenancy();
-  const projectinfo = CreateRandomProjectRequest();
+  const projectInfo = CreateRandomProjectRequest();
 
-  const project = await Project.NewProjectFromRequest(projectinfo, ownerTenancy);
+  const project = await Project.NewProjectFromRequest(projectInfo, ownerTenancy);
 
   // create copies for the collaborators
   await Project.CreateCopyForCollaborator(project, collaboratorOne);
@@ -166,9 +166,9 @@ test("IsActive Method", async () => {
   const ownerTenancy = await CreateRandomTenancy();
   const collaboratorOne = await CreateRandomTenancy();
   const collaboratorTwo = await CreateRandomTenancy();
-  const projectinfo = CreateRandomProjectRequest();
+  const projectInfo = CreateRandomProjectRequest();
 
-  const project = await Project.NewProjectFromRequest(projectinfo, ownerTenancy);
+  const project = await Project.NewProjectFromRequest(projectInfo, ownerTenancy);
 
   // create copies for the collaborators
   await Project.CreateCopyForCollaborator(project, collaboratorOne);
@@ -186,11 +186,11 @@ test("IsActive Method", async () => {
 });
 
 test("test applyDiff Method", async () => {
-  const projectinfo = CreateRandomProjectRequest();
+  const projectInfo = CreateRandomProjectRequest();
   const tenancy = await CreateRandomTenancy();
 
   // Add project to database
-  const project = await Project.NewProjectFromRequest(projectinfo, tenancy);
+  const project = await Project.NewProjectFromRequest(projectInfo, tenancy);
 
   // Create a random diff
   const diff = CreateRandomDiffRequest();
@@ -198,10 +198,10 @@ test("test applyDiff Method", async () => {
 
   // check that the diff response has the correct properties
   expect(diffResp).toHaveProperty("projectName");
-  expect(diffResp.projectName?.old).toBe(projectinfo.projectName);
+  expect(diffResp.projectName?.old).toBe(projectInfo.projectName);
   expect(diffResp.projectName?.new).toBe(diff.projectName);
   expect(diffResp).toHaveProperty("projectDescription");
-  expect(diffResp.projectDescription?.old).toBe(projectinfo.projectDescription);
+  expect(diffResp.projectDescription?.old).toBe(projectInfo.projectDescription);
   expect(diffResp.projectDescription?.new).toBe(diff.projectDescription);
 });
 
@@ -209,29 +209,29 @@ test("project IsActive Method", async () => {
   // create random project
   const tenancy = await CreateRandomTenancy();
 
-  const projectinfo = CreateRandomProjectRequest();
-  const project = await Project.NewProjectFromRequest(projectinfo, tenancy);
+  const projectInfo = CreateRandomProjectRequest();
+  const project = await Project.NewProjectFromRequest(projectInfo, tenancy);
 
   // update the project status to inactive
   await project.applyDiff({ projectStatus: "INACTIVE" }, tenancy);
-  const ptojectFromDB = await Project.findById(project._id);
+  const projectFromDB = await Project.findById(project._id);
 
   // check that the project is inactive
-  expect((ptojectFromDB as ProjectDocument).IsActive(tenancy)).toBe(false);
+  expect((projectFromDB as ProjectDocument).IsActive(tenancy)).toBe(false);
 });
 
 test("project Update CustomMetaData via diff", async () => {
   // create random project
   const tenancy = await CreateRandomTenancy();
 
-  const projectinfo = CreateRandomProjectRequest();
+  const projectInfo = CreateRandomProjectRequest();
 
-  const project = await Project.NewProjectFromRequest(projectinfo, tenancy);
+  const project = await Project.NewProjectFromRequest(projectInfo, tenancy);
 
   // create diff that only updates the customMetaData
   // loop over the existing customMetaData and update the values
   const UpdatedCustomMetaData: Record<string, string> = {};
-  for (const key in projectinfo.customMetaData) {
+  for (const key in projectInfo.customMetaData) {
     UpdatedCustomMetaData[key] = faker.lorem.word();
   }
 

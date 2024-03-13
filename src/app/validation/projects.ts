@@ -34,7 +34,7 @@ export const updateProject = [
   body("projectName", "Project Name is required").optional().trim().escape(),
   body("projectDescription", "Project Description is required").optional().trim().escape(),
   body("projectStatus", "Needs to ACTIVE or INACTIVE").optional().isIn(["ACTIVE", "INACTIVE"]).trim().escape(),
-  // collaborators is an array of valld mongoose objectIds
+  // collaborators is an array of valid mongoose objectIds
   // check with mongoose.Types.ObjectId.isValid(value)
   body("collaborators", "Collaborators should be an array of valid objectIds")
     .optional()

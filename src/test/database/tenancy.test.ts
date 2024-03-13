@@ -215,7 +215,7 @@ test("test AddCollaborator Method, collaborator does not exist should throw erro
   // add a collaborator that does not exist
   await expect(
     tenancy.AddCollaborator({ tenantID: new mongoose.Types.ObjectId().toString(), friendlyName: faker.company.name() })
-  ).rejects.toThrow("collaberator Tenant does not exist");
+  ).rejects.toThrow("collaborator Tenant does not exist");
 });
 
 test("test removeCollaborator Method, collaborator does not exist should throw error", async () => {

@@ -373,9 +373,20 @@ export interface components {
             collaborators?: string[];
         };
         AttachmentRequest: {
-            attachmentName: string;
-            /** Format: uuid */
-            blobUuid: string;
+            /** @description Name of the file */
+            filename: string;
+            /** @description File extension */
+            extension: string;
+            /**
+             * Format: binary
+             * @description Binary data of the file
+             */
+            file: string;
+            hash: {
+                /** @enum {string} */
+                hashType?: "MD5" | "SHA1" | "SHA256";
+                hashValue?: string;
+            };
         };
         EventResponse: {
             /** Format: uuid */
@@ -390,7 +401,7 @@ export interface components {
             customMetaData?: {
                 [key: string]: string | undefined;
             };
-            attachments?: components["schemas"]["AttachmentRequest"][];
+            attachments: components["schemas"]["AttachmentRequest"][];
         };
         ProjectDiffResponse: {
             projectName?: {

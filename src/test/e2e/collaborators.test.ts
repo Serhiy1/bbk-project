@@ -202,7 +202,7 @@ describe(" Collaborators endpoint validation", () => {
       .set("Authorization", `Bearer ${person1.token}`)
       .send(addRequest1);
     expect(res1.statusCode).toBe(400);
-    expect(res1.body.message).toBe("collaberator Tenant does not exist");
+    expect(res1.body.message).toBe("collaborator Tenant does not exist");
   });
 
   test("Adding collaberators with missing friendlyName", async () => {
