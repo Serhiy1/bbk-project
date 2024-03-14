@@ -76,9 +76,7 @@ PublicProjectsRouter.get(
   }
 );
 
-async function FetchPublicProject(
-  req: Request,
-): Promise<ProjectDocument> {
+async function FetchPublicProject(req: Request): Promise<ProjectDocument> {
   const tenancy = await Tenancy.getPublicTenant();
   const project = await Project.FindByProjectId(new mongoose.Types.ObjectId(req.params.projectId), tenancy);
 

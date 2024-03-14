@@ -7,7 +7,10 @@ import { Project } from "./project";
 import { RelationshipManager } from "./relationshipManager";
 
 const publicTenantName = "public-transparency-service";
-let cachedPublicTenant : TenancyDocument| null = null;
+
+export interface NewTenancyOptions {
+  newPublicTenant?: boolean;
+}
 
 // Declare the attributes of the model
 interface ITenancy {
@@ -40,7 +43,7 @@ export type TenancyDocument = HydratedDocument<ITenancy, ITenancyMethods>;
 
 // declare the Full Model along with any static methods
 export interface ITenancyModel extends Model<ITenancy, ITenancyQueryHelpers, ITenancyMethods> {
-  NewTenancy: (companyName: string) => Promise<TenancyDocument>;
+  NewTenancy: (companyName: string, opts?: NewTenancyOptions) => Promise<TenancyDocument>;
   getPublicTenant: () => Promise<TenancyDocument>;
 }
 
@@ -52,41 +55,35 @@ const TenancySchema = new Schema<ITenancy, ITenancyModel, ITenancyMethods>({
   relationships: [{ type: Schema.Types.ObjectId, ref: RelationshipManager }],
 });
 
-TenancySchema.static("NewTenancy", async function NewTenancy(companyName: string, opts = {newPublicTenant: false}): Promise<TenancyDocument> {
-  
-  // check if the tenancy is trying to overwrite the public tenant
-  if (!opts.newPublicTenant) {
-    if (companyName === publicTenantName) {
-      throw new UserInputError("Invalid company name");
+TenancySchema.static(
+  "NewTenancy",
+  async function NewTenancy(companyName: string, opts = { newPublicTenant: false }): Promise<TenancyDocument> {
+    // check if the tenancy is trying to overwrite the public tenant
+    if (!opts.newPublicTenant) {
+      if (companyName === publicTenantName) {
+        throw new UserInputError("Invalid company name");
+      }
     }
+
+    return this.create({
+      _id: new mongoose.Types.ObjectId(),
+      projects: [],
+      relationships: [],
+      companyName: companyName,
+    });
   }
-  
-  return this.create({
-    _id: new mongoose.Types.ObjectId(),
-    projects: [],
-    relationships: [],
-    companyName: companyName,
-  });
-});
+);
 
 TenancySchema.static("getPublicTenant", async function getPublicTenant(): Promise<TenancyDocument> {
-  // Check if we have a cached value
-  if (cachedPublicTenant) {
-    return cachedPublicTenant;
-  }
-
   // if the public tenant does not exist, create it
   let publicTenant = await this.findOne({ companyName: publicTenantName });
 
   if (publicTenant == null) {
-    publicTenant = await this.NewTenancy(publicTenantName);
+    publicTenant = await this.NewTenancy(publicTenantName, { newPublicTenant: true });
   }
 
-  // Cache the result for future calls
-  cachedPublicTenant = publicTenant;
-
   return publicTenant;
-})
+});
 
 TenancySchema.method("ListProjects", async function ListProjects(): Promise<ProjectResponse[]> {
   // call toObject to convert the Mongoose Document to a plain JS object

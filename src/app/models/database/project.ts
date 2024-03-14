@@ -90,9 +90,17 @@ ProjectSchema.static(
     const _public = projectInfo.public || false;
 
     // If the project is public, add the public tenant to the collaborators
+    const PublicTenant = await Tenancy.getPublicTenant();
+
     if (_public) {
-      const PublicTenant = await Tenancy.getPublicTenant();
       collaborators.push(PublicTenant._id);
+    } else {
+      // check that the public tenant is not in the collaborators list
+      console.log(`collaborators: ${collaborators} public tenant: ${PublicTenant._id}`);
+      // do a string comparison of the ids to make sure that the public tenant is not in the list
+      if (collaborators.map((id) => id.toString()).includes(PublicTenant._id.toString())) {
+        throw new UserInputError("Cannot add public tenant to a private project");
+      }
     }
 
     const projectObj: IProject = {
@@ -300,15 +308,15 @@ ProjectSchema.method("applyDiff", async function applyDiff(diff: ProjectDiffRequ
   const PublicTenant = await Tenancy.getPublicTenant();
   if (this.public) {
     Collaborators.push(PublicTenant._id);
-  } 
+  }
   // Get the new collaborators that were added and create a copy of the project for them
   const newCollaborators = diffCollaborators.filter((id) => !this.collaborators.includes(id));
-  
+
   // make sure no one is trying to add the public tenant as a collaborator without the project being public
   if (newCollaborators.includes(PublicTenant._id) && !this.public) {
     throw new UserInputError("Cannot add public tenant to a private project");
   }
-  
+
   await tenancy.CheckCollaboratorsAreActive(newCollaborators);
   await this.CreateCopiesForCollaborators(newCollaborators);
 

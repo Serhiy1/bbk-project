@@ -1,18 +1,18 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import { Application } from "express";
 import request from "supertest";
 
 import { app } from "../../app/app";
-import { collaboratorsRequest } from "../../app/models/types/collaborators";
 import {
-  EventRequest,
   EventResponse,
   ProjectDiffRequest,
   ProjectDiffResponse,
-  ProjectRequest,
   ProjectResponse,
 } from "../../app/models/types/projects";
 import { CreateRandomEventRequest, CreateRandomProjectRequest, Person, SignupPerson } from "../utils/utils";
+import { checkEventMatchesRequest } from "../utils/utils";
+import { checkProjectMatchesRequest } from "../utils/utils";
+import { checkCollaborators } from "../utils/utils";
+import { becomeCollaborators } from "../utils/utils";
 
 describe("End to end Project sharing", () => {
   let person1: Person;
@@ -505,68 +505,3 @@ describe("Input Validation for collaborators", () => {
     expect(removeRequest.statusCode).toBe(200);
   });
 });
-
-function checkEventMatchesRequest(event: EventResponse, request: EventRequest) {
-  expect(event.eventName).toBe(request.eventName);
-  expect(event.eventType).toBe(request.eventType);
-}
-
-function checkProjectMatchesRequest(project: ProjectResponse, request: ProjectRequest) {
-  expect(project.projectName).toBe(request.projectName);
-  expect(project.projectDescription).toBe(request.projectDescription);
-  expect(project.projectStatus).toBe(request.projectStatus);
-  checkCollaborators(project, request.collaborators || []);
-}
-
-function checkCollaborators(project: ProjectResponse, collaborators: string[]) {
-  const collaboratorIDs = project.ProjectCollaborators.map((collaborator) => collaborator.tenantID);
-  // check that the project collaboratorID's Include the request collaborators but not nessicarily match
-  expect(collaboratorIDs).toEqual(expect.arrayContaining(collaborators));
-}
-
-async function becomeCollaborators(app: Application, personA: Person, personB: Person, pending: boolean = false) {
-  // person 1 adds person 2
-  const AddPersonB: collaboratorsRequest = {
-    friendlyName: personB.companyName,
-    tenantID: personB.token_info.tenancyId.toString(),
-  };
-
-  const res = await request(app)
-    .post("/collaborators")
-    .set("Authorization", `Bearer ${personA.token}`)
-    .send(AddPersonB);
-  expect(res.statusCode).toBe(201);
-
-  let expectedStatus: string;
-
-  if (!pending) {
-    // person 2 adds person 1 back
-    const AddPersonA: collaboratorsRequest = {
-      friendlyName: personA.companyName,
-      tenantID: personA.token_info.tenancyId.toString(),
-    };
-
-    const res2 = await request(app)
-      .post("/collaborators")
-      .set("Authorization", `Bearer ${personB.token}`)
-      .send(AddPersonA);
-    expect(res2.statusCode).toBe(201);
-
-    expectedStatus = "ACTIVE";
-  } else {
-    expectedStatus = "PENDING";
-  }
-
-  // check that both see an ACTIVE relationship
-  const res3 = await request(app)
-    .get(`/collaborators/${personB.token_info.tenancyId}`)
-    .set("Authorization", `Bearer ${personA.token}`);
-  expect(res3.statusCode).toBe(200);
-  expect(res3.body.status).toBe(expectedStatus);
-
-  const res4 = await request(app)
-    .get(`/collaborators/${personA.token_info.tenancyId}`)
-    .set("Authorization", `Bearer ${personB.token}`);
-  expect(res4.statusCode).toBe(200);
-  expect(res4.body.status).toBe(expectedStatus);
-}
