@@ -1,4 +1,5 @@
 /* Tests that cover the Projects Endpoint */
+import { faker } from "@faker-js/faker";
 import { beforeAll, describe, expect, test } from "@jest/globals";
 import mongoose from "mongoose";
 import request from "supertest";
@@ -346,6 +347,45 @@ describe("Project Input Validation", () => {
       .set("Authorization", `Bearer ${token}`);
     expect(res2.statusCode).toBe(400);
     expect(res2.body.message).toBe("Custom Meta should be a string to string map");
+  });
+  
+  
+  test("posting an event with a non string value in customMetaData should respond with 400", async () => {
+    const projectinfo = CreateRandomProjectRequest();
+    const person = new Person();
+    const token = await SignupPerson(person, app);
+    const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
+    expect(res.statusCode).toBe(201);
+    
+    const eventinfo =  {
+      eventName: faker.lorem.words(3),
+      eventType: "INFO",
+      customMetaData: {
+        1 : 2 
+      }
+    }
+    
+    const res2 = await request(app).post(`/Projects/${res.body.projectId}/events`)
+      .send(eventinfo).set("Authorization", `Bearer ${token}`);
+      
+    expect(res2.statusCode).toBe(400);
+
+  });
+
+  test("updating a project with an invalid collaborator should respond with 400", async () => {
+    const projectinfo = CreateRandomProjectRequest();
+    const person = new Person();
+    const token = await SignupPerson(person, app);
+    const res = await request(app).post("/projects").send(projectinfo).set("Authorization", `Bearer ${token}`);
+    expect(res.statusCode).toBe(201);
+
+    const diff = { collaborators: ["invalid"] };
+    const res2 = await request(app)
+      .patch(`/Projects/${res.body.projectId}`)
+      .send(diff)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res2.statusCode).toBe(400);
   });
 
   test("Get project with Non UUID project ID Paramater should respond with 400", async () => {

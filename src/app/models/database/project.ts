@@ -2,7 +2,7 @@
 
 import mongoose, { HydratedDocument, Model, model, Schema } from "mongoose";
 
-import { ServerError } from "../../errors/errors";
+import { ServerError, UserInputError } from "../../errors/errors";
 import {
   EventResponse,
   ProjectCollaborator,
@@ -26,6 +26,7 @@ interface IProjectArgs {
   collaboratorTenancy: mongoose.Types.ObjectId;
   diffs: ProjectDiffResponse[];
   collaborators: mongoose.Types.ObjectId[];
+  public: boolean;
 }
 
 // Declare the attributes of the model
@@ -75,6 +76,7 @@ const ProjectSchema = new Schema<IProject, IProjectModel, IProjectMethods, IProj
   events: [{ type: Schema.Types.ObjectId, ref: "Event" }],
   diffs: [{ type: Schema.Types.Mixed, required: true }],
   collaborators: [{ type: Schema.Types.ObjectId, ref: "diffCollaborators" }],
+  public: { type: Boolean, required: true },
 });
 
 ProjectSchema.static(
@@ -85,6 +87,20 @@ ProjectSchema.static(
   ): Promise<ProjectDocument> {
     const customMetaData = (projectInfo?.customMetaData as { [key: string]: string }) || {};
     const collaborators = projectInfo.collaborators?.map((id) => new mongoose.Types.ObjectId(id)) || [];
+    const _public = projectInfo.public || false;
+
+    // If the project is public, add the public tenant to the collaborators
+    const PublicTenant = await Tenancy.getPublicTenant();
+
+    if (_public) {
+      collaborators.push(PublicTenant._id);
+    } else {
+      // check that the public tenant is not in the collaborators list
+      // do a string comparison of the ids to make sure that the public tenant is not in the list
+      if (collaborators.map((id) => id.toString()).includes(PublicTenant._id.toString())) {
+        throw new UserInputError("Cannot add public tenant to a private project");
+      }
+    }
 
     const projectObj: IProject = {
       _id: new mongoose.Types.ObjectId(),
@@ -98,6 +114,7 @@ ProjectSchema.static(
       OwnerTenancy: tenancy._id,
       collaboratorTenancy: tenancy._id,
       diffs: [],
+      public: _public,
 
       // technically the owner shares the project with themselves, makes it easier to apply diffs and push events
       collaborators: [tenancy._id, ...collaborators],
@@ -137,6 +154,7 @@ ProjectSchema.static(
       collaboratorTenancy: collaborator._id,
       diffs: [],
       collaborators: project.collaborators,
+      public: project.public,
     };
 
     // push the project to the collaborator's project list
@@ -176,6 +194,7 @@ ProjectSchema.method("ToProjectResponse", async function ToProjectResponse(): Pr
     projectDescription: this.projectDescription,
     projectStatus: this.projectStatus,
     ProjectCollaborators: await this.ListProjectCollaborators(),
+    public: this.public,
   };
   return obj;
 });
@@ -185,6 +204,12 @@ ProjectSchema.method("ListProjectCollaborators", async function ListProjectColla
 > {
   // Filter out owner from the collaborators
   const collaborators = this.collaborators.filter((id) => !id.equals(this.OwnerTenancy));
+
+  // if public, filter out the public tenant
+  if (this.public) {
+    const PublicTenant = await Tenancy.getPublicTenant();
+    collaborators.filter((id) => !id.equals(PublicTenant._id));
+  }
 
   // Map each collaborator ID to a promise of fetching the collaborator
   const collaboratorPromises = collaborators.map((collaboratorID) => Tenancy.findById(collaboratorID));
@@ -278,8 +303,19 @@ ProjectSchema.method("applyDiff", async function applyDiff(diff: ProjectDiffRequ
   // The new collaborators value that will be set
   const Collaborators = [...new Set([this.OwnerTenancy, ...diffCollaborators])];
 
+  // Make sure that the public tenant is always in the collaborators list
+  const PublicTenant = await Tenancy.getPublicTenant();
+  if (this.public) {
+    Collaborators.push(PublicTenant._id);
+  }
   // Get the new collaborators that were added and create a copy of the project for them
   const newCollaborators = diffCollaborators.filter((id) => !this.collaborators.includes(id));
+
+  // make sure no one is trying to add the public tenant as a collaborator without the project being public
+  if (newCollaborators.includes(PublicTenant._id) && !this.public) {
+    throw new UserInputError("Cannot add public tenant to a private project");
+  }
+
   await tenancy.CheckCollaboratorsAreActive(newCollaborators);
   await this.CreateCopiesForCollaborators(newCollaborators);
 

@@ -1,18 +1,11 @@
 import express, { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 
-import {
-  MethodNotAllowedError,
-  NotFoundError,
-  NotImplimentedError,
-  ServerError,
-  UserInputError,
-} from "../errors/errors";
+import { MethodNotAllowedError, NotFoundError, ServerError, UserInputError } from "../errors/errors";
 import { AuthRequired } from "../middleware/authentication";
 import { Event } from "../models/database/event";
 import { Project, ProjectDocument } from "../models/database/project";
 import { Tenancy, TenancyDocument } from "../models/database/tenancy";
-import { collaboratorsResponse } from "../models/types/collaborators";
 import {
   EventRequest,
   EventResponse,
@@ -191,15 +184,6 @@ ProjectEventRouter.get(
     } catch (error) {
       next(error);
     }
-  }
-);
-
-// Added routes for collaborators
-ProjectEventRouter.get(
-  "/:projectID/Collaborators",
-  AuthRequired,
-  (req: Request<projectId>, res: Response<collaboratorsResponse[]>, next) => {
-    next(new NotImplimentedError("Viewing current collaborators for project is not implemented"));
   }
 );
 

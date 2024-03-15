@@ -7,14 +7,18 @@ import { ApplicationRouter } from "./routes/applicationsRouter";
 import { authenticationRouter } from "./routes/AuthenticationRouter";
 import { collaboratorsRouter } from "./routes/CollaboratorsRouter";
 import { ProjectEventRouter } from "./routes/ProjectsEventsRouter";
+import { PublicProjectsRouter } from "./routes/publicProjectsRouter";
 
 export const app = express();
 
-app.use(morgan("dev"));
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan("dev"));
+}
 app.use(express.json());
 
 app.use("/user", authenticationRouter);
 app.use("/projects", ProjectEventRouter);
+app.use("/public/projects", PublicProjectsRouter);
 app.use("/collaborators", collaboratorsRouter);
 app.use("/app", ApplicationRouter);
 

@@ -39,7 +39,7 @@ authenticationRouter.post(
       const token = NewToken(user.toTokenInfo());
       res.status(201).send({ token: token, tenantID: tenancy.id });
     } catch (error) {
-      next(new ServerError((error as Error).message));
+      next(error as Error);
     }
   }
 );
@@ -75,7 +75,7 @@ authenticationRouter.post(
 
       res.status(200).send({ token: token });
     } catch (error) {
-      next(new ServerError((error as Error).message));
+      next(error as Error);
     }
   }
 );
@@ -94,7 +94,7 @@ authenticationRouter.get(
         res.status(200).send(user.toUserResponse());
       }
     } catch (error) {
-      next(new ServerError((error as Error).message));
+      next(error as Error);
     }
   }
 );

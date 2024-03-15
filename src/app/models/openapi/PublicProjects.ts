@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/Projects": {
+    "/public/projects": {
         parameters: {
             query?: never;
             header?: never;
@@ -21,7 +21,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description List of projects */
+                /** @description List of all public projects */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -30,69 +30,24 @@ export interface paths {
                         "application/json": components["schemas"]["ProjectResponse"][];
                     };
                 };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
             };
         };
         put?: never;
-        /** Creating a project */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["ProjectRequest"];
-                };
-            };
-            responses: {
-                /** @description Project created successfully */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ProjectResponse"];
-                    };
-                };
-                /** @description Validation error */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/Projects/{projectId}": {
+    "/public/projects/{projectId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Project Overview */
+        /** Public Project Overview */
         get: {
             parameters: {
                 query?: never;
@@ -116,13 +71,6 @@ export interface paths {
                         };
                     };
                 };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Project ID not found */
                 404: {
                     headers: {
@@ -137,64 +85,17 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Updating a project */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    projectId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["ProjectDiffRequest"];
-                };
-            };
-            responses: {
-                /** @description Project updated successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ProjectDiffResponse"];
-                    };
-                };
-                /** @description Validation error */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Project ID not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
+        patch?: never;
         trace?: never;
     };
-    "/Projects/{projectId}/events": {
+    "/public/projects/{projectId}/events": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** View all Events on a project */
+        /** View all Events on a public project */
         get: {
             parameters: {
                 query?: never;
@@ -215,13 +116,6 @@ export interface paths {
                         "application/json": components["schemas"]["EventResponse"][];
                     };
                 };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Project ID not found */
                 404: {
                     headers: {
@@ -232,68 +126,21 @@ export interface paths {
             };
         };
         put?: never;
-        /** Create an event on a project */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    projectId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["EventRequest"];
-                };
-            };
-            responses: {
-                /** @description Event created successfully */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["EventResponse"];
-                    };
-                };
-                /** @description Validation error */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Project ID not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/Projects/{projectId}/events/{eventId}": {
+    "/public/projects/{projectId}/events/{eventId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** View Single Event */
+        /** View Single Event on a public project */
         get: {
             parameters: {
                 query?: never;
@@ -314,13 +161,6 @@ export interface paths {
                     content: {
                         "application/json": components["schemas"]["EventResponse"];
                     };
-                };
-                /** @description JWT authentication required */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description Project ID or Event ID not found */
                 404: {
@@ -362,21 +202,6 @@ export interface components {
             projectStatus: "ACTIVE" | "INACTIVE";
             ProjectCollaborators: components["schemas"]["ProjectCollaborator"][];
             public: boolean;
-        };
-        ProjectRequest: {
-            projectName: string;
-            projectDescription: string;
-            /**
-             * @description Can only make projects public on creation, once project is public it cannot be made private
-             * @default false
-             */
-            public: boolean;
-            /** @enum {string} */
-            projectStatus?: "ACTIVE" | "INACTIVE";
-            customMetaData?: {
-                [key: string]: string | undefined;
-            };
-            collaborators?: string[];
         };
         AttachmentRequest: {
             /** @description Name of the file */
@@ -436,24 +261,6 @@ export interface components {
                 old?: string[];
                 new?: string[];
             };
-        };
-        ProjectDiffRequest: {
-            projectName?: string;
-            projectDescription?: string;
-            /** @enum {string} */
-            projectStatus?: "ACTIVE" | "INACTIVE";
-            customMetaData?: {
-                [key: string]: string | undefined;
-            };
-            collaborators?: string[];
-        };
-        EventRequest: {
-            eventName: string;
-            eventType: string;
-            customMetaData?: {
-                [key: string]: string | undefined;
-            };
-            attachments?: components["schemas"]["AttachmentRequest"][];
         };
     };
     responses: never;

@@ -239,8 +239,6 @@ describe("Application Authentication", () => {
   test("Authenticate Application", async () => {
     // use the login endpoint to authenticate the application
     const res = await request(app).post("/user/login").send({ email: application.appID, password: application.secret });
-    const res_body = res.body as LoginResponse;
-    console.log(res_body);
     expect(res.statusCode).toBe(200);
   });
 

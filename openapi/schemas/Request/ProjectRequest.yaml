@@ -8,6 +8,11 @@ properties:
     type: string
     maxLength: 1024
     pattern: '^\S(.*\S)?$'
+  public:
+    type: boolean
+    # Default value is false
+    default: false
+    description: Can only make projects public on creation, once project is public it cannot be made private
   projectStatus:
     type: string
     enum:
