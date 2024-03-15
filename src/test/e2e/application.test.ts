@@ -5,7 +5,6 @@ import request from "supertest";
 import { app } from "../../app/app";
 import { User, UserDocument } from "../../app/models/database/user";
 import { ApplicationResponse } from "../../app/models/types/applications";
-import { LoginResponse } from "../../app/models/types/authentications";
 import { ProjectResponse } from "../../app/models/types/projects";
 import { CreateRandomProjectRequest, Person, SignupPerson } from "../utils/utils";
 
@@ -46,8 +45,6 @@ describe("Application Authentication", () => {
   test("Authenticate Application", async () => {
     // use the login endpoint to authenticate the application
     const res = await request(app).post("/user/login").send({ email: application.appID, password: application.secret });
-    const res_body = res.body as LoginResponse;
-    console.log(res_body);
     expect(res.statusCode).toBe(200);
   });
 

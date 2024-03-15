@@ -2,6 +2,11 @@ module.exports ={
     preset: "ts-jest",
     testEnvironment : "node",
     testMatch : ["**/**/*test.ts"],
+    coveragePathIgnorePatterns: [
+      "<rootDir>/src/app/app.ts",
+      "<rootDir>/src/app/server.ts",
+      "<rootDir>/src/app/utils/utils.ts",
+    ],
     verbose: true,
     forceExit: true,
     testTimeout  : 50000,

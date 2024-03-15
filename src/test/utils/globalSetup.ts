@@ -7,4 +7,5 @@ export = async function globalSetup() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (global as any).__MONGOINSTANCE = instance;
   process.env.MONGO_URI = uri;
+  process.env.NODE_ENV = 'test';
 };

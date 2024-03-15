@@ -96,7 +96,6 @@ ProjectSchema.static(
       collaborators.push(PublicTenant._id);
     } else {
       // check that the public tenant is not in the collaborators list
-      console.log(`collaborators: ${collaborators} public tenant: ${PublicTenant._id}`);
       // do a string comparison of the ids to make sure that the public tenant is not in the list
       if (collaborators.map((id) => id.toString()).includes(PublicTenant._id.toString())) {
         throw new UserInputError("Cannot add public tenant to a private project");
