@@ -6,3 +6,5 @@ build
 /playwright/.cache/
 .env
 coverage/*
+report/*.png
+report/**/*.cache
