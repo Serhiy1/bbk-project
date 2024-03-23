@@ -49,9 +49,12 @@ describe("Sign Up And Login", () => {
     const res = await request(app).post("/user/login").send(signup_info);
     expect(res.statusCode).toBe(200);
     const res_body: LoginResponse = res.body;
+    
+    // sleep for 1 second to make sure the token is different
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     expect(res_body).toHaveProperty("token");
-    expect(res_body.token).toBe(FirstToken);
+    expect(res_body.token).not.toBe(FirstToken);
   });
 
   test("Whoami Endpoint", async () => {

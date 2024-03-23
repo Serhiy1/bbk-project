@@ -13,7 +13,7 @@ module.exports ={
     globalSetup: "<rootDir>/src/test/utils/globalSetup.ts",
     globalTeardown: "<rootDir>/src/test/utils/globalTeardown.ts",
     setupFilesAfterEnv : ["<rootDir>/src/test/utils/SetupFile.ts"],
-    maxWorkers: 4,
+    maxWorkers: 2,
     reporters: [
         "default", // Keep the default reporter for console outputs
         ["jest-junit", {
