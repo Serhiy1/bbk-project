@@ -65,7 +65,7 @@ const ProjectSchema = new Schema<IProject, IProjectModel, IProjectMethods, IProj
   // Internal ID
   _id: { type: Schema.Types.ObjectId, required: true },
   // ID visible to the User
-  ProjectId: { type: Schema.Types.ObjectId, required: true },
+  ProjectId: { type: Schema.Types.ObjectId, required: true, index: true},
   OwnerTenancy: { type: Schema.Types.ObjectId, ref: "Tenancy", required: true },
   collaboratorTenancy: { type: Schema.Types.ObjectId, ref: "Tenancy" },
   projectName: { type: String, required: true },

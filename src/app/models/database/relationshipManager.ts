@@ -62,7 +62,7 @@ const relationshipManagerSchema = new Schema<
   _id: { type: Schema.Types.ObjectId, required: true },
   collaboratorsInfo: { type: Map, of: { type: Object } },
   collaborators: [{ type: Schema.Types.ObjectId, required: true }],
-  collaboratorsHash: { type: String, required: true },
+  collaboratorsHash: { type: String, required: true, index: true, unique: true},
 });
 
 relationshipManagerSchema.static(

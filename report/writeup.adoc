@@ -27,7 +27,7 @@ toc::[]
 <<<
 
 == Introduction
-===  Problem Statement
+===  Background / Problem Statement
 The landscape of industry and technology is rapidly evolving, increasingly leaning towards automation and digital transformation. This shift necessitates the swift exchange of data between entities, a process that faces significant challenges when the authenticity and provenance of data cannot be assured. The traditional solution has always involved manual verification by personnel, a method that negates the efficiency automation aims to achieve.
 
 This issue spans both tangible and intangible assets. In the realm of physical goods, there is a case study for a nuclear power management company, which needed to ensure that its subcontractors adhere to the proper disposal protocols for nuclear waste. This case study highlighted the need for two-way trust: as the subcontractors also needed to be confident they're following the most current guidelines for waste disposal.footnote:[Data Trails AI (2021). "Sellafield Ltd: Streamlining Nuclear Waste Handling." Retrieved from https://www.datatrails.ai/case_study/sellafield-ltd-streamlining-nuclear-waste-handling/]
@@ -770,7 +770,7 @@ The development and testing stages were marked by a systematic approach to codin
 // ** Fault injection testing
 // ** Security testing
 
-== Evaluation of Product and Future Work
+== Conclusion and evaluation of Product and Future Work
 
 The development of the service aimed to fulfill the minimum viable product (MVP) criteria and was successfully deployed. However, to enhance its functionality and competitive edge in the market, several user interface features and technical enhancements are planned. These additions are crucial for improving user experience, meeting real-world organizational needs, and ensuring the service's robustness and security.
 
@@ -808,3 +808,11 @@ The roadmap for future work is designed to address current gaps in the service's
 
     
 <<<
+    
+// TODO: 
+// - Add self sources to diagrams
+// - Update section names to fit the standard structure of a project report
+// - possibly discuss the methodology of information gathering and analysis
+// - update the conclusion 
+// - Mention adding indexes to the database for performance
+// - mention switching to time series collections for events and diffs
