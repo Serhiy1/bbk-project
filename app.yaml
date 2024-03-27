@@ -1,2 +1,7 @@
 runtime: nodejs20
 env: standard
+
+
+env_variables:
+  JWTKey: JWTKEY_PLACEHOLDER
+  MongoConnectionString: MONGOCONNECTIONSTRING_PLACEHOLDER

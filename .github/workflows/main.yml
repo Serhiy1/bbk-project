@@ -3,12 +3,21 @@ name: Deploy to Google App Engine
 on:
   push:
       branches:
-          - master
+          - main
 jobs:
   deploy:
     environment: Dev Test
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Inject Environment Variables into app.yaml
+        run: |
+          sed -i 's|JWTKEY_PLACEHOLDER|${{ secrets.JWTKEY }}|' app.yaml
+          sed -i 's|MONGOCONNECTIONSTRING_PLACEHOLDER|${{ secrets.MONGOCONNECTIONSTRING }}|' app.yaml
+          cat app.yaml
+        
       - id: auth
         uses: google-github-actions/auth@v2
         with:
@@ -16,16 +25,8 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+
         
-      - name: Set default GCP project
-        run: gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-
       - name: Deploy to Google App Engine
         run: |
-          gcloud app deploy --quiet \
-            --set-env-vars \
-            JWTKey=${{ secrets.JWTKEY }},\
-            MongoConnectionString=${{ secrets.MONGOCONNECTIONSTRING }}
+          gcloud app deploy 

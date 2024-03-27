@@ -26,6 +26,11 @@ jobs:
         JWTKey : ${{ secrets.JWTKEY }} # Access secret from the environment
         MongoConnectionString : ${{ secrets.MONGOCONNECTIONSTRING }} # Access secret from the environment
       run: npm test
+    - name: Test Summary
+      uses: test-summary/action@v2
+      with:
+        paths: "./test-results/*.xml"
+        output: "./test-results/summary.md"
     - uses: actions/upload-artifact@v3
       if: always()
       with:
